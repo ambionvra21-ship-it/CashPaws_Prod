@@ -8,7 +8,6 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         
-        <!-- 🌟 FIXED LAYER: Modern Flutter V2 Architecture Component -->
         <activity
             android:name="io.flutter.embedding.android.FlutterActivity"
             android:exported="true"
@@ -26,15 +25,14 @@
             </intent-filter>
         </activity>
         
-        <!-- Mandated metadata for Flutter plugins generation -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <!-- ADMOB MASTER CONFIGURATION LAYER -->
+        <!-- 🌟 FIXED LAYER: Clean AdMob application tag structure -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            Ca-app-pub-3940256099942544~3347511713 -- android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
 
     </application>
 </manifest>
