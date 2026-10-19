@@ -1,0 +1,6 @@
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  # 🌟 ADD THIS LINE: Official Google AdMob Package
+  google_mobile_ads: ^5.1.0
