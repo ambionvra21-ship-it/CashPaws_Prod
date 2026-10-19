@@ -24,7 +24,7 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
   int _localSpinsRemaining = 0;
   
   // 🌟 FIXED LAYER: Strict point sectors to maintain your 90%+ profit margin
-  final List<int> _wheelSectors = const;
+   final List<int> _wheelSectors = List<int>.from(const [10, 20, 50, 100, 5, 30, 15, 40]);
 
   @override
   void initState() {
