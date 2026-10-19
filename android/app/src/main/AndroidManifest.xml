@@ -8,8 +8,9 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         
+        <!-- 🌟 FIXED LAYER: Modern Flutter V2 Architecture Component -->
         <activity
-            android:name=".MainActivity"
+            android:name="io.flutter.embedding.android.FlutterActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
@@ -25,15 +26,15 @@
             </intent-filter>
         </activity>
         
-        <!-- Don't delete the meta-data below. This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <!-- Mandated metadata for Flutter plugins generation -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <!-- 🌟 ADMOB MASTER CONFIGURATION LAYER -->
+        <!-- ADMOB MASTER CONFIGURATION LAYER -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/> <!-- Safe Google Test ID -->
+            Ca-app-pub-3940256099942544~3347511713 -- android:value="ca-app-pub-3940256099942544~3347511713"/>
 
     </application>
 </manifest>
