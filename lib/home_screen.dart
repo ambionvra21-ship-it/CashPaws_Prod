@@ -1,3 +1,28 @@
+import 'spin_wheel_dialog.dart';
+                 _buildTaskCard(
+                   icon: Icons.hourglass_top_rounded,
+                   title: 'Lucky Spin & Win',
+                   subtitle: 'Spins remaining today: $_spinsRemaining/5',
+                   actionLabel: 'Spin Wheel',
+                   isCompleted: _spinsRemaining == 0,
+                   onTap: () {
+                     showDialog(
+                       context: context,
+                       builder: (context) => CashPawsSpinWheelDialog(
+                         currentSpinsRemaining: _spinsRemaining,
+                         onSpinComplete: (pointsWon) {
+                           setState(() {
+                             _spinsRemaining--;
+                             _userPawcoins += pointsWon;
+                             _usdValue = _userPawcoins / 1000;
+                           });
+                         },
+                       ),
+                     );
+                   },
+                 ),
+
+
 import 'package:flutter/material.dart';
 import 'theme.dart';
 
