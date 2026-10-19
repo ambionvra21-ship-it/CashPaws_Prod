@@ -9,7 +9,7 @@ class CashPawsHomeScreen extends StatefulWidget {
 }
 
 class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
-  // Dynamic variables connected to your automated Supabase database profile metrics
+  // Dynamic variables connected to your automated database profile metrics
   int _userPawcoins = 12450; 
   double _usdValue = 12.45; 
   int _spinsRemaining = 5;
@@ -45,13 +45,13 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                   children: [
                     // TOP BAR USER PROFILE ACTION ROW
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.between,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
                           children: [
-                            CircleAvatar(
+                            const CircleAvatar(
                               backgroundColor: CashPawsColors.cardNavy,
-                              child: const Icon(Icons.person, color: CashPawsColors.neonGreen),
+                              child: Icon(Icons.person, color: CashPawsColors.neonGreen),
                             ),
                             const SizedBox(width: 12),
                             const Text(
@@ -138,7 +138,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       actionLabel: 'Spin Wheel',
                       isCompleted: _spinsRemaining == 0,
                       onTap: () {
-                        // Routing target hook for Batch 2 interface implementation
+                        // Routing target hook for future implementation
                       },
                     ),
                     const SizedBox(height: 12),
@@ -151,7 +151,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       actionLabel: 'Watch Now',
                       isCompleted: false,
                       onTap: () {
-                        // Routing target hook for Batch 3 interface implementation
+                        // Routing target hook for future implementation
                       },
                     ),
                   ],
