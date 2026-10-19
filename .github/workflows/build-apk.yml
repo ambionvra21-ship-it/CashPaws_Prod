@@ -26,22 +26,37 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create the Android project files securely
+      - name: Generate Android Project Shell Dynamically
         run: |
-          # 🌟 Run create inside a temp directory so it doesn't overwrite your custom manifest
           mkdir temp_build
           cd temp_build
           flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
           cd ..
           
-          # Move generated configurations into place without destroying your files
-          cp -r temp_build/android/app/src/main/java android/app/src/main/ 2>/all || true
-          cp -r temp_build/android/build.gradle android/ 2>/all || true
-          cp -r temp_build/android/settings.gradle android/ 2>/all || true
+          # Move necessary core setup files into place
+          cp -r temp_build/android/app/src/main/java android/app/src/main/ 2>/dev/null || true
+          cp -r temp_build/android/build.gradle android/ 2>/dev/null || true
+          cp -r temp_build/android/settings.gradle android/ 2>/dev/null || true
           rm -rf temp_build test
 
-      - name: Force Android Gradle Plugin Upgrade
+      - name: Force Overwrite Custom Android Manifest
         run: |
+          # 🌟 CRITICAL FIX: Ensure your customized manifest is explicitly forced into the project
+          mkdir -p android/app/src/main
+          if [ -f AndroidManifest.xml ]; then
+            cp AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+          elif [ -f android/app/src/main/AndroidManifest.xml ]; then
+            echo "Custom AndroidManifest already in place."
+          fi
+
+      - name: Clean Up Obsolete V1 Embedding References
+        run: |
+          # Force Gradle properties to support modern Android structures
+          mkdir -p android
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
+          
+          # Update dynamic configuration definitions to version 8.1.4
           if [ -f android/settings.gradle ]; then
             sed -i 's/"com.android.application" version "[^"]*"/"com.android.application" version "8.1.4"/g' android/settings.gradle
           fi
@@ -53,7 +68,7 @@ jobs:
         run: flutter pub get
 
       - name: Compile Release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-pub
 
       - name: Upload Compiled APK Artifact
         uses: actions/upload-artifact@v4
