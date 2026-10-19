@@ -3,22 +3,19 @@ description: "A secure, passive earning reward application."
 publish_to: 'none'
 version: 1.0.0+1
 
-# 🌟 FIXED LAYER: Mandated Flutter and Dart SDK boundary tokens
 environment:
   sdk: '^3.6.0'
-  
+
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  google_mobile_ads: ^5.1.0
   
-  # 🌟 ADD THIS LINE: Official Supabase Integration Package
-  supabase_flutter: ^2.8.3
+  # 🌟 Google Mobile Ads package for Banner, Interstitial, and Rewarded Ads
+  google_mobile_ads: ^5.1.0
 
-  
-  # Official Google Mobile Ads package for Banner, Interstitial, and Rewarded Ads
-  google_mobile_ads: ^5.1.0
+  # 🌟 Supabase Integration Package for Cloud Point-Tracking
+  supabase_flutter: ^2.8.3
 
 dev_dependencies:
   flutter_test:
