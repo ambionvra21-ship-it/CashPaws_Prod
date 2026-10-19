@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://android.com">
+    <application ...>
+        
+        <!-- 🌟 ADD THIS BLOCK: Replace value with your real AdMob App ID -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/> <!-- This is Google's safe testing ID -->
+
+    </application>
+</manifest>
