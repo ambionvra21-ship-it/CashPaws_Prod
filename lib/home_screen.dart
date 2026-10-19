@@ -1,30 +1,6 @@
-import 'spin_wheel_dialog.dart';
-                 _buildTaskCard(
-                   icon: Icons.hourglass_top_rounded,
-                   title: 'Lucky Spin & Win',
-                   subtitle: 'Spins remaining today: $_spinsRemaining/5',
-                   actionLabel: 'Spin Wheel',
-                   isCompleted: _spinsRemaining == 0,
-                   onTap: () {
-                     showDialog(
-                       context: context,
-                       builder: (context) => CashPawsSpinWheelDialog(
-                         currentSpinsRemaining: _spinsRemaining,
-                         onSpinComplete: (pointsWon) {
-                           setState(() {
-                             _spinsRemaining--;
-                             _userPawcoins += pointsWon;
-                             _usdValue = _userPawcoins / 1000;
-                           });
-                         },
-                       ),
-                     );
-                   },
-                 ),
-
-
 import 'package:flutter/material.dart';
 import 'theme.dart';
+import 'spin_wheel_dialog.dart';
 
 class CashPawsHomeScreen extends StatefulWidget {
   const CashPawsHomeScreen({super.key});
@@ -34,7 +10,6 @@ class CashPawsHomeScreen extends StatefulWidget {
 }
 
 class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
-  // Dynamic variables connected to your automated database profile metrics
   int _userPawcoins = 12450; 
   double _usdValue = 12.45; 
   int _spinsRemaining = 5;
@@ -93,7 +68,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // GLOWING COIN BALANCE CARD (Copies top element of your image reference)
+                    // GLOWING COIN BALANCE CARD
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -163,7 +138,19 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       actionLabel: 'Spin Wheel',
                       isCompleted: _spinsRemaining == 0,
                       onTap: () {
-                        // Routing target hook for future implementation
+                        showDialog(
+                          context: context,
+                          builder: (context) => CashPawsSpinWheelDialog(
+                            currentSpinsRemaining: _spinsRemaining,
+                            onSpinComplete: (pointsWon) {
+                              setState(() {
+                                _spinsRemaining--;
+                                _userPawcoins += pointsWon;
+                                _usdValue = _userPawcoins / 1000;
+                              });
+                            },
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 12),
@@ -176,7 +163,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       actionLabel: 'Watch Now',
                       isCompleted: false,
                       onTap: () {
-                        // Routing target hook for future implementation
+                        // Routing target hook for video implementation
                       },
                     ),
                   ],
@@ -201,7 +188,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     );
   }
 
-  // Reusable card container component to match your dark layout styling cleanly
   Widget _buildTaskCard({
     required IconData icon,
     required String title,
