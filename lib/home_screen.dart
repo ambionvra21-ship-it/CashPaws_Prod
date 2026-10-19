@@ -1,7 +1,7 @@
-import 'video_stream_screen.dart';
 import 'package:flutter/material.dart';
 import 'theme.dart';
 import 'spin_wheel_dialog.dart';
+import 'video_stream_screen.dart';
 
 class CashPawsHomeScreen extends StatefulWidget {
   const CashPawsHomeScreen({super.key});
@@ -32,7 +32,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     }
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -131,7 +131,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Lucky Spin Wheel Path Router Button
+                                        // Lucky Spin Wheel Path Router Button
                     _buildTaskCard(
                       icon: Icons.hourglass_top_rounded,
                       title: 'Lucky Spin & Win',
@@ -156,7 +156,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                                  // Watch Incentivized Video Engine Button 
+                    // Watch Incentivized Video Engine Button 
                     _buildTaskCard(
                       icon: Icons.play_circle_filled,
                       title: 'Watch Video Streams',
@@ -180,7 +180,10 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                         );
                       },
                     ),
-
+                  ],
+                ),
+              ),
+            ),
 
             // FIXED BOTTOM AUTOMATED ADMOB BANNER VIEWPORT SAFE ZONE
             Container(
