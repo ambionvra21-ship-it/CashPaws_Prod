@@ -28,25 +28,35 @@ jobs:
 
       - name: Generate Fresh Supported Android Template
         run: |
-          # 🌟 Move code temporarily to prevent conflicts
           mkdir -p backup_lib
           cp -r lib/* backup_lib/ 2>/dev/null || true
           cp pubspec.yaml backup_pubspec.yaml 2>/dev/null || true
           
-          # Clean up any existing broken or partial android directories entirely
           rm -rf android
           
-          # Let Flutter generate a brand new, up-to-date project shell matching your configuration
           flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
           
-          # Restore your custom code over the clean template shell
           rm -rf lib
           mv backup_lib lib
           mv backup_pubspec.yaml pubspec.yaml
 
+      - name: Force Android Gradle Plugin Upgrade
+        run: |
+          # 🌟 CRITICAL FIX: Upgrade AGP from 8.1.0 to 8.1.4 to meet dependency requirements
+          SETTINGS_GRADLE="android/settings.gradle"
+          if [ -f "$SETTINGS_GRADLE" ]; then
+            sed -i 's/"com.android.application" version "[^"]*"/"com.android.application" version "8.1.4"/g' "$SETTINGS_GRADLE"
+            echo "Successfully upgraded AGP version inside settings.gradle."
+          else
+            echo "Warning: settings.gradle not found, checking build.gradle fallback..."
+            BUILD_GRADLE="android/build.gradle"
+            if [ -f "$BUILD_GRADLE" ]; then
+              sed -i 's/gradle:[0-9.]*/gradle:8.1.4/g' "$BUILD_GRADLE"
+            fi
+          fi
+
       - name: Inject AdMob App ID into Android Manifest Automatically
         run: |
-          # Use a shell script to inject your Google Test ID directly into the freshly generated manifest file safely
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
             sed -i '/<\/application>/i \        <meta-data\n            android:name="com.google.android.gms.ads.APPLICATION_ID"\n            android:value="ca-app-pub-3940256099942544~3347511713"\/>' "$MANIFEST_PATH"
