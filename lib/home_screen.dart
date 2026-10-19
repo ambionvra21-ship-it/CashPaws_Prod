@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'theme.dart';
 import 'spin_wheel_dialog.dart';
 import 'video_stream_screen.dart';
+import 'payout_screen.dart'; // 🌟 Links the payout screen asset file cleanly
 
 class CashPawsHomeScreen extends StatefulWidget {
   const CashPawsHomeScreen({super.key});
@@ -12,15 +14,49 @@ class CashPawsHomeScreen extends StatefulWidget {
 
 class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   int _userPawcoins = 12450; 
-  double _usdValue = 12.45; 
+  double _usdValue = 1.245; 
   int _spinsRemaining = 5;
   bool _hasCheckedInToday = false;
+
+  // Banner ad instance variables for the layout safe zones
+  BannerAd? _bannerAd;
+  bool _isBannerAdLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBottomBannerAd();
+  }
+
+  void _loadBottomBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Google Test Banner ID
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
 
   void _executeDailyCheckIn() {
     if (!_hasCheckedInToday) {
       setState(() {
         _userPawcoins += 50;
-        _usdValue = _userPawcoins / 1000;
+        _usdValue = _userPawcoins / 10000;
         _hasCheckedInToday = true;
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -61,9 +97,26 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                             ),
                           ],
                         ),
+                        // 🌟 ACTIVE WITHDRAWAL LINK TRIGGER: Launches the complete payout panel layout
                         IconButton(
-                          icon: const Icon(Icons.notifications, color: CashPawsColors.textWhite),
-                          onPressed: () {},
+                          icon: const Icon(Icons.account_balance_wallet, color: CashPawsColors.neonGreen, size: 26),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CashPawsPayoutScreen(
+                                  currentCoins: _userPawcoins,
+                                  currentUserId: 'test_user_session_123', // Hardcoded until user auth binds
+                                  onBalanceChanged: (updatedCoins) {
+                                    setState(() {
+                                      _userPawcoins = updatedCoins;
+                                      _usdValue = _userPawcoins / 10000; // Locked 10,000 coins = $1.00 conversion rule
+                                    });
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -147,7 +200,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                               setState(() {
                                 _spinsRemaining--;
                                 _userPawcoins += pointsWon;
-                                _usdValue = _userPawcoins / 1000;
+                                _usdValue = _userPawcoins / 10000;
                               });
                             },
                           ),
@@ -172,7 +225,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                               onVideoWatched: (pointsEarned) {
                                 setState(() {
                                   _userPawcoins += pointsEarned;
-                                  _usdValue = _userPawcoins / 1000;
+                                  _usdValue = _userPawcoins / 10000;
                                 });
                               },
                             ),
@@ -185,17 +238,25 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
               ),
             ),
 
-            // FIXED BOTTOM AUTOMATED ADMOB BANNER VIEWPORT SAFE ZONE
-            Container(
-              width: double.infinity,
-              height: 50,
-              color: CashPawsColors.cardNavy,
-              alignment: Alignment.center,
-              child: Text(
-                '🔥 ADMOB RUNNING STRIP PLACEHOLDER 🔥',
-                style: TextStyle(color: CashPawsColors.textMuted.withOpacity(0.6), fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-            ),
+            // 🌟 LIVE ADMOB BANNER VIEWPORT SAFE ZONE
+            // Replaces the running text strip placeholder with a real live ad unit layer
+            _isBannerAdLoaded && _bannerAd != null
+                ? Container(
+                    alignment: Alignment.center,
+                    width: _bannerAd!.size.width.toDouble(),
+                    height: _bannerAd!.size.height.toDouble(),
+                    child: AdWidget(ad: _bannerAd!),
+                  )
+                : Container(
+                    width: double.infinity,
+                    height: 50,
+                    color: CashPawsColors.cardNavy,
+                    alignment: Alignment.center,
+                    child: Text(
+                      '🔄 ADMOB BANNER BOX REFRESHING...',
+                      style: TextStyle(color: CashPawsColors.textMuted.withOpacity(0.6), fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
           ],
         ),
       ),
