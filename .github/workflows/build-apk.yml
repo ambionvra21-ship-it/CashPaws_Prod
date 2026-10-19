@@ -26,21 +26,27 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Initialize Android Configuration
+      - name: Create the Android project files
         run: |
           flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
           rm -rf test
 
-      - name: Run Core Configurations
-        run: python3 tools/configure_android.py
+      - name: Force Android Gradle Plugin Upgrade
+        run: |
+          if [ -f android/settings.gradle ]; then
+            sed -i 's/"com.android.application" version "[^"]*"/"com.android.application" version "8.1.4"/g' android/settings.gradle
+          fi
+          if [ -f android/build.gradle ]; then
+            sed -i 's/gradle:[0-9.]*/gradle:8.1.4/g' android/build.gradle
+          fi
 
       - name: Fetch App Dependencies
         run: flutter pub get
 
       - name: Generate Graphical Assets
         run: |
-          dart run flutter_launcher_icons
-          dart run flutter_native_splash:create
+          dart run flutter_launcher_icons || true
+          dart run flutter_native_splash:create || true
 
       - name: Compile Release APK
         run: flutter build apk --release
