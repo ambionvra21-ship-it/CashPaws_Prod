@@ -26,10 +26,19 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create the Android project files
+      - name: Create the Android project files securely
         run: |
+          # 🌟 Run create inside a temp directory so it doesn't overwrite your custom manifest
+          mkdir temp_build
+          cd temp_build
           flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
-          rm -rf test
+          cd ..
+          
+          # Move generated configurations into place without destroying your files
+          cp -r temp_build/android/app/src/main/java android/app/src/main/ 2>/all || true
+          cp -r temp_build/android/build.gradle android/ 2>/all || true
+          cp -r temp_build/android/settings.gradle android/ 2>/all || true
+          rm -rf temp_build test
 
       - name: Force Android Gradle Plugin Upgrade
         run: |
@@ -42,11 +51,6 @@ jobs:
 
       - name: Fetch App Dependencies
         run: flutter pub get
-
-      - name: Generate Graphical Assets
-        run: |
-          dart run flutter_launcher_icons || true
-          dart run flutter_native_splash:create || true
 
       - name: Compile Release APK
         run: flutter build apk --release
