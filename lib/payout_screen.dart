@@ -21,19 +21,17 @@ class CashPawsPayoutScreen extends StatefulWidget {
 class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
   final _supabaseService = CashPawsSupabaseService();
   final _accountController = TextEditingController();
+  String _method = 'PayPal';
+  double _tier = 10.0;
+  int _coins = 0;
+  bool _loading = false;
 
-  String _selectedMethod = 'PayPal';
-  double _selectedTier = 10.0;
-  int _localCoins = 0;
-  bool _isProcessing = false;
-
-  // Strict reward cash incentive milestones to secure your profit margin
-  final List<double> _incentiveTiers = List<double>.from(const [10.0, 20.0, 50.0, 100.0, 500.0, 1000.0]);
+  final List<double> _tiers = const [10.0, 20.0, 50.0, 100.0, 500.0, 1000.0];
 
   @override
   void initState() {
     super.initState();
-    _localCoins = widget.currentCoins;
+    _coins = widget.currentCoins;
   }
 
   @override
@@ -42,265 +40,122 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
     super.dispose();
   }
 
-  void _showSnackbar(String text, Color bgColor) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text), backgroundColor: bgColor),
-    );
-  }
-
-    void _submitWithdrawal() async {
+  void _submit() async {
     final accountText = _accountController.text.trim();
     if (accountText.isEmpty) {
-      _showSnackbar('⚠️ Please enter your payout destination details.', Colors.redAccent);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⚠️ Enter account details.')));
+      return;
+    }
+    final int requiredCoins = (_tier * 10000).toInt();
+    if (_coins < requiredCoins) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Insufficient balance.')));
       return;
     }
 
-    final int requiredCoins = (_selectedTier * 10000).toInt();
-    if (_localCoins < requiredCoins) {
-      _showSnackbar('❌ Insufficient balance to redeem this cash incentive tier.', Colors.redAccent);
-      return;
-    }
-
-    setState(() => _isProcessing = true);
-
-    final response = await _supabaseService.processWithdrawalRequest(
+    setState(() => _loading = true);
+    final res = await _supabaseService.processWithdrawalRequest(
       userId: widget.currentUserId,
-      payoutMethod: _selectedMethod,
+      payoutMethod: _method,
       payoutAccount: accountText,
-      usdAmount: _selectedTier,
+      usdAmount: _tier,
     );
+    setState(() => _loading = false);
 
-    setState(() => _isProcessing = false);
-
-    if (response['success'] == true) {
-      setState(() {
-        _localCoins = response['new_balance'] as int;
-      });
-      widget.onBalanceChanged(_localCoins);
+    if (res['success'] == true) {
+      setState(() => _coins = res['new_balance'] as int);
+      widget.onBalanceChanged(_coins);
       _accountController.clear();
-      _showSuccessDialog(response['message'].toString());
-    } else {
-      _showSnackbar(response['message'].toString(), Colors.redAccent);
+      showDialog(
+        context: context,
+        builder: (c) => AlertDialog(
+          backgroundColor: CashPawsColors.cardNavy,
+          title: const Text('🎉 SUCCESS', style: TextStyle(color: Colors.white)),
+          content: Text(res['message'].toString(), style: const TextStyle(color: Colors.grey)),
+          actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('OK'))],
+        ),
+      );
     }
   }
 
-  void _showSuccessDialog(String message) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: CashPawsColors.cardNavy,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('🎉 REQUEST FILED', style: TextStyle(color: CashPawsColors.textWhite, fontWeight: FontWeight.bold)),
-        content: Text(message, style: const TextStyle(color: CashPawsColors.textMuted)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: CashPawsColors.neonGreen, fontWeight: FontWeight.bold)),
-          )
-        ],
-      ),
-    );
-  }
-
-    @override
+  @override
   Widget build(BuildContext context) {
-    double usdValue = _localCoins / 10000;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: CashPawsColors.backgroundMidnight,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: CashPawsColors.textWhite, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'REDEEM INCENTIVES',
-          style: TextStyle(color: CashPawsColors.textWhite, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.1),
-        ),
+        title: const Text('REDEEM INCENTIVES', style: TextStyle(color: Colors.white, fontSize: 16)),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                color: CashPawsColors.cardNavy,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // TOP COIN BALANCE SNAPSHOT CARD
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: CashPawsColors.cardNavy,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Live Balance:', style: TextStyle(color: CashPawsColors.textMuted, fontSize: 14, fontWeight: FontWeight.bold)),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.monetization_on, color: CashPawsColors.goldAccent, size: 20),
-                                  const SizedBox(width: 6),
-                                  Text('$_localCoins', style: const TextStyle(color: CashPawsColors.textWhite, fontSize: 18, fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                              Text('\$${usdValue.toStringAsFixed(2)} USD', style: const TextStyle(color: CashPawsColors.neonGreen, fontSize: 12)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // WALLET TYPE GATEWAY RADIOS
-                    const Text('SELECT PAYMENT METHOD', style: TextStyle(color: CashPawsColors.textMuted, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
-                    const SizedBox(height: 10),
-                    _buildMethodRadio('PayPal', Icons.account_balance_wallet_outlined),
-                    _buildMethodRadio('GCash', Icons.phone_android_outlined),
-                    _buildMethodRadio('Maya', Icons.credit_card_outlined),
-                    _buildMethodRadio('UNO Wallet', Icons.stars_outlined),
-                    const SizedBox(height: 20),
-
-                                        // INCENTIVE REDEMPTION VALUE GRID
-                    const Text('SELECT TRANSACTION TIER', style: TextStyle(color: CashPawsColors.textMuted, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
-                    const SizedBox(height: 10),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 2.2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      itemCount: _incentiveTiers.length,
-                      itemBuilder: (context, index) {
-                        double tierValue = _incentiveTiers[index];
-                        bool isSelected = _selectedTier == tierValue;
-                        return InkWell(
-                          onTap: () => setState(() => _selectedTier = tierValue),
-                          child: Container(
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: isSelected ? CashPawsColors.neonGreen.withOpacity(0.15) : CashPawsColors.cardNavy,
-                              border: Border.all(color: isSelected ? CashPawsColors.neonGreen : Colors.transparent, width: 1.5),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '\$${tierValue.toStringAsFixed(0)}',
-                              style: TextStyle(color: isSelected ? CashPawsColors.neonGreen : CashPawsColors.textWhite, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // ACCOUNT DETAILS FORM ENTRY SLOT
-                    Text(
-                      _selectedMethod == 'PayPal' ? 'PAYPAL EMAIL ADDRESS' : 'MOBILE WALLET ACCOUNT NUMBER',
-                      style: const TextStyle(color: CashPawsColors.textMuted, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.1),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _accountController,
-                      style: const TextStyle(color: CashPawsColors.textWhite),
-                      keyboardType: _selectedMethod == 'PayPal' ? TextInputType.emailAddress : TextInputType.phone,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: CashPawsColors.cardNavy,
-                        hintText: _selectedMethod == 'PayPal' ? 'example@paypal.com' : '09XXXXXXXXX',
-                        hintStyle: TextStyle(color: CashPawsColors.textMuted.withOpacity(0.5)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: CashPawsColors.neonGreen)),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // UNO REFERRAL CARD INTEGRATION
-                    if (_selectedMethod == 'UNO Wallet') ...[
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue.withOpacity(0.3), width: 1),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: const [
-                                Icon(Icons.info_outline, color: Colors.blueAccent, size: 20),
-                                SizedBox(width: 8),
-                                Text('UNO Digital Bank Bonus', style: TextStyle(color: CashPawsColors.textWhite, fontWeight: FontWeight.bold, fontSize: 14)),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            const Text(
-                              '📌 Join One and grab a ₱100 bonus! Use code V98HAR on signup. Register through: https://uno.global',
-                              style: TextStyle(color: CashPawsColors.textMuted, fontSize: 12, height: 1.4),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-
-                    // SUBMISSION BUTTON PLATFORM LAUNCHER
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: CashPawsColors.neonGreen,
-                          foregroundColor: CashPawsColors.backgroundMidnight,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        onPressed: _isProcessing ? null : _submitWithdrawal,
-                        child: Text(
-                          _isProcessing ? 'PROCESSING CLOUD SYNC...' : 'CONFIRM WITHDRAWAL',
-                          style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0),
-                        ),
-                      ),
-                    ),
+                    const Text('Live Balance:', style: TextStyle(color: Colors.grey)),
+                    Text('$_coins Coins (\$${(_coins / 10000).toStringAsFixed(2)})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMethodRadio(String value, IconData icon) {
-    bool isSelected = _selectedMethod == value;
-    return InkWell(
-      onTap: () => setState(() => _selectedMethod = value),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: CashPawsColors.cardNavy,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isSelected ? CashPawsColors.neonGreen : Colors.transparent, width: 1.2),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: isSelected ? CashPawsColors.neonGreen : CashPawsColors.textMuted, size: 22),
-            const SizedBox(width: 14),
-            Text(value, style: TextStyle(color: isSelected ? CashPawsColors.textWhite : CashPawsColors.textMuted, fontWeight: FontWeight.bold, fontSize: 14)),
-            const Spacer(),
-            Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_off, color: isSelected ? CashPawsColors.neonGreen : CashPawsColors.textMuted, size: 20),
-          ],
+              const SizedBox(height: 20),
+              const Text('METHOD', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              ...['PayPal', 'GCash', 'Maya', 'UNO Wallet'].map((m) => RadioListTile<String>(
+                title: Text(m, style: const TextStyle(color: Colors.white)),
+                value: m,
+                groupValue: _method,
+                activeColor: CashPawsColors.neonGreen,
+                onChanged: (v) => setState(() => _method = v!),
+              )),
+              const SizedBox(height: 20),
+              const Text('TIER', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              Wrap(
+                spacing: 10,
+                children: _tiers.map((t) => ChoiceChip(
+                  label: Text('\$$t', style: TextStyle(color: _tier == t ? Colors.black : Colors.white)),
+                  selected: _tier == t,
+                  selectedColor: CashPawsColors.neonGreen,
+                  backgroundColor: CashPawsColors.cardNavy,
+                  onSelected: (s) => setState(() => _tier = t),
+                )).toList(),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _accountController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: CashPawsColors.cardNavy,
+                  hintText: _method == 'PayPal' ? 'email@paypal.com' : '09XXXXXXXXX',
+                  hintStyle: const TextStyle(color: Colors.grey),
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (_method == 'UNO Wallet') ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  color: Colors.blue.withOpacity(0.1),
+                  child: const Text(
+                    '📌 Join One and grab a ₱100 bonus! Use code V98HAR on signup. Register through: https://uno.global',
+                    style: TextStyle(color: Colors.white, fontSize: 11),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
+                  onPressed: _loading ? null : _submit,
+                  child: Text(_loading ? 'SYNCING...' : 'CONFIRM WITHDRAWAL', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
