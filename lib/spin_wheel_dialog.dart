@@ -23,7 +23,7 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
   bool _isSpinning = false;
   int _localSpinsRemaining = 0;
   
-  // Strict point sectors to maintain a stable ad-to-payout profit margin
+  // 🌟 FIXED LAYER: Strict point sectors to maintain your 90%+ profit margin
   final List<int> _wheelSectors = const;
 
   @override
