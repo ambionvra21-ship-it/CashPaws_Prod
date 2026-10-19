@@ -34,8 +34,8 @@ jobs:
           
           rm -rf android
           
-          flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
-          
+          flutter create --org com.ambionvra21 --project-name cashpaws --platforms=android .
+
           rm -rf lib
           mv backup_lib lib
           mv backup_pubspec.yaml pubspec.yaml
