@@ -156,7 +156,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Watch Incentivized Video Engine Button 
+                                  // Watch Incentivized Video Engine Button 
                     _buildTaskCard(
                       icon: Icons.play_circle_filled,
                       title: 'Watch Video Streams',
@@ -164,13 +164,23 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       actionLabel: 'Watch Now',
                       isCompleted: false,
                       onTap: () {
-                        // Routing target hook for video implementation
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CashPawsVideoStreamScreen(
+                              currentCoins: _userPawcoins,
+                              onVideoWatched: (pointsEarned) {
+                                setState(() {
+                                  _userPawcoins += pointsEarned;
+                                  _usdValue = _userPawcoins / 1000;
+                                });
+                              },
+                            ),
+                          ),
+                        );
                       },
                     ),
-                  ],
-                ),
-              ),
-            ),
+
 
             // FIXED BOTTOM AUTOMATED ADMOB BANNER VIEWPORT SAFE ZONE
             Container(
