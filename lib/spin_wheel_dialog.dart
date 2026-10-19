@@ -23,8 +23,8 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
   bool _isSpinning = false;
   int _localSpinsRemaining = 0;
   
-  // Strict point sectors to maintain a 90% profit margin
-  final List<int> _wheelSectors =;
+  // Strict point sectors to maintain a stable ad-to-payout profit margin
+  final List<int> _wheelSectors = const;
 
   @override
   void initState() {
@@ -56,11 +56,9 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
       _localSpinsRemaining--;
     });
 
-    // Select a random winning index from our strict point sectors
     final random = Random();
     final int targetSectorIndex = random.nextInt(_wheelSectors.length);
     
-    // Calculate precise rotational stop angle (4 full spins + target segment offset)
     double sectorAngle = (2 * pi) / _wheelSectors.length;
     double targetAngle = (2 * pi * 4) + (targetSectorIndex * sectorAngle) + (sectorAngle / 2);
 
@@ -127,7 +125,7 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
-                  Navigator.of(context).pop(); // Close prize alert window
+                  Navigator.of(context).pop();
                   setState(() {
                     _isSpinning = false;
                   });
@@ -148,7 +146,7 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
       backgroundColor: CashPawsColors.backgroundMidnight,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: CashPawsColors.neonGreen.withOpacity(0.2), width: 1.5),
+        side: BorderSide(color: CashPawsColors.neonGreen.withOpacity(0.2), width: 1.5),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -175,7 +173,6 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
             ),
             const SizedBox(height: 24),
             
-            // THE GRAPHICAL WHEEL LAYER
             Stack(
               alignment: Alignment.center,
               children: [
@@ -199,7 +196,6 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
                     );
                   },
                 ),
-                // Center Peg Indicator
                 Container(
                   width: 32,
                   height: 32,
@@ -210,7 +206,6 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
                   ),
                   child: const Icon(Icons.star, color: CashPawsColors.goldAccent, size: 18),
                 ),
-                // Top Sector Pointer Arrow
                 Positioned(
                   top: 0,
                   child: Icon(Icons.arrow_drop_down_sharp, color: Colors.red.shade400, size: 36),
@@ -242,7 +237,6 @@ class _CashPawsSpinWheelDialogState extends State<CashPawsSpinWheelDialog> with 
   }
 }
 
-// Custom Painter to cleanly segment the points inside our dark wheel asset UI
 class _WheelPainter extends CustomPainter {
   final List<int> sectors;
   _WheelPainter({required this.sectors});
@@ -267,7 +261,6 @@ class _WheelPainter extends CustomPainter {
         paint,
       );
 
-      // Render text numbers inside the slice markers cleanly
       final textPainter = TextPainter(
         text: TextSpan(
           text: sectors[i].toString(),
