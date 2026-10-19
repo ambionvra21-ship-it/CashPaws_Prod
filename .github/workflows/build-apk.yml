@@ -1,0 +1,52 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java Environment
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter Engine
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.4'
+          channel: 'stable'
+          cache: true
+
+      - name: Initialize Android Configuration
+        run: |
+          flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
+          rm -rf test
+
+      - name: Run Core Configurations
+        run: python3 tools/configure_android.py
+
+      - name: Fetch App Dependencies
+        run: flutter pub get
+
+      - name: Generate Graphical Assets
+        run: |
+          dart run flutter_launcher_icons
+          dart run flutter_native_splash:create
+
+      - name: Compile Release APK
+        run: flutter build apk --release
+
+      - name: Upload Compiled APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cashpaws-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
