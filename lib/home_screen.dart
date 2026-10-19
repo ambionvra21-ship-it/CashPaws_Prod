@@ -3,7 +3,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'theme.dart';
 import 'spin_wheel_dialog.dart';
 import 'video_stream_screen.dart';
-import 'payout_screen.dart'; // 🌟 Links the payout screen asset file cleanly
+import 'payout_screen.dart';
+import 'mining_screen.dart'; // 🌟 ADDED LAYER: Imports your new custom 3-hour cloud miner 
 
 class CashPawsHomeScreen extends StatefulWidget {
   const CashPawsHomeScreen({super.key});
@@ -18,7 +19,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   int _spinsRemaining = 5;
   bool _hasCheckedInToday = false;
 
-  // Banner ad instance variables for the layout safe zones
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
 
@@ -30,7 +30,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
 
   void _loadBottomBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Google Test Banner ID
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', 
       request: const AdRequest(),
       size: AdSize.banner,
       listener: BannerAdListener(
@@ -97,7 +97,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                             ),
                           ],
                         ),
-                        // 🌟 ACTIVE WITHDRAWAL LINK TRIGGER: Launches the complete payout panel layout
                         IconButton(
                           icon: const Icon(Icons.account_balance_wallet, color: CashPawsColors.neonGreen, size: 26),
                           onPressed: () {
@@ -106,11 +105,11 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                               MaterialPageRoute(
                                 builder: (context) => CashPawsPayoutScreen(
                                   currentCoins: _userPawcoins,
-                                  currentUserId: 'test_user_session_123', // Hardcoded until user auth binds
+                                  currentUserId: 'test_user_session_123',
                                   onBalanceChanged: (updatedCoins) {
                                     setState(() {
                                       _userPawcoins = updatedCoins;
-                                      _usdValue = _userPawcoins / 10000; // Locked 10,000 coins = $1.00 conversion rule
+                                      _usdValue = _userPawcoins / 10000;
                                     });
                                   },
                                 ),
@@ -184,7 +183,33 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                                        // Lucky Spin Wheel Path Router Button
+                                        // 🌟 NEW ACTIVE ROUTE LINK: 3-Hour Cloud Mining Screen Trigger
+                    _buildTaskCard(
+                      icon: Icons.pie_chart_outline,
+                      title: '3-Hour Cloud Miner',
+                      subtitle: 'Status: Automatic data mining loop',
+                      actionLabel: 'Open Miner',
+                      isCompleted: false,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CashPawsMiningScreen(
+                              currentCoins: _userPawcoins,
+                              onMiningClaimed: (pointsEarned) {
+                                setState(() {
+                                  _userPawcoins += pointsEarned;
+                                  _usdValue = _userPawcoins / 10000;
+                                });
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Lucky Spin Wheel Path Router Button
                     _buildTaskCard(
                       icon: Icons.hourglass_top_rounded,
                       title: 'Lucky Spin & Win',
@@ -238,8 +263,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
               ),
             ),
 
-            // 🌟 LIVE ADMOB BANNER VIEWPORT SAFE ZONE
-            // Replaces the running text strip placeholder with a real live ad unit layer
+            // FIXED BOTTOM ADMOB BANNER LAYER
             _isBannerAdLoaded && _bannerAd != null
                 ? Container(
                     alignment: Alignment.center,
