@@ -26,49 +26,41 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Generate Android Project Shell Dynamically
+      - name: Generate Fresh Supported Android Template
         run: |
-          mkdir temp_build
-          cd temp_build
+          # 🌟 Move code temporarily to prevent conflicts
+          mkdir -p backup_lib
+          cp -r lib/* backup_lib/ 2>/dev/null || true
+          cp pubspec.yaml backup_pubspec.yaml 2>/dev/null || true
+          
+          # Clean up any existing broken or partial android directories entirely
+          rm -rf android
+          
+          # Let Flutter generate a brand new, up-to-date project shell matching your configuration
           flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
-          cd ..
           
-          # Move necessary core setup files into place
-          cp -r temp_build/android/app/src/main/java android/app/src/main/ 2>/dev/null || true
-          cp -r temp_build/android/build.gradle android/ 2>/dev/null || true
-          cp -r temp_build/android/settings.gradle android/ 2>/dev/null || true
-          rm -rf temp_build test
+          # Restore your custom code over the clean template shell
+          rm -rf lib
+          mv backup_lib lib
+          mv backup_pubspec.yaml pubspec.yaml
 
-      - name: Force Overwrite Custom Android Manifest
+      - name: Inject AdMob App ID into Android Manifest Automatically
         run: |
-          # 🌟 CRITICAL FIX: Ensure your customized manifest is explicitly forced into the project
-          mkdir -p android/app/src/main
-          if [ -f AndroidManifest.xml ]; then
-            cp AndroidManifest.xml android/app/src/main/AndroidManifest.xml
-          elif [ -f android/app/src/main/AndroidManifest.xml ]; then
-            echo "Custom AndroidManifest already in place."
-          fi
-
-      - name: Clean Up Obsolete V1 Embedding References
-        run: |
-          # Force Gradle properties to support modern Android structures
-          mkdir -p android
-          echo "android.useAndroidX=true" >> android/gradle.properties
-          echo "android.enableJetifier=true" >> android/gradle.properties
-          
-          # Update dynamic configuration definitions to version 8.1.4
-          if [ -f android/settings.gradle ]; then
-            sed -i 's/"com.android.application" version "[^"]*"/"com.android.application" version "8.1.4"/g' android/settings.gradle
-          fi
-          if [ -f android/build.gradle ]; then
-            sed -i 's/gradle:[0-9.]*/gradle:8.1.4/g' android/build.gradle
+          # Use a shell script to inject your Google Test ID directly into the freshly generated manifest file safely
+          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ]; then
+            sed -i '/<\/application>/i \        <meta-data\n            android:name="com.google.android.gms.ads.APPLICATION_ID"\n            android:value="ca-app-pub-3940256099942544~3347511713"\/>' "$MANIFEST_PATH"
+            echo "AdMob ID successfully injected natively."
+          else
+            echo "Error: Manifest file not found!"
+            exit 1
           fi
 
       - name: Fetch App Dependencies
         run: flutter pub get
 
       - name: Compile Release APK
-        run: flutter build apk --release --no-pub
+        run: flutter build apk --release
 
       - name: Upload Compiled APK Artifact
         uses: actions/upload-artifact@v4
