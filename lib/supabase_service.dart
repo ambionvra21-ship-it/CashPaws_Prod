@@ -5,6 +5,7 @@ class CashPawsSupabaseService {
   factory CashPawsSupabaseService() => _instance;
   CashPawsSupabaseService._internal();
 
+  // 🌟 FIXED LAYER: Correctly defined global client instance
   final SupabaseClient _client = Supabase.instance.client;
 
   // Fetch a user's real-time live Pawcoin balance from the secure cloud ledger table
@@ -29,17 +30,14 @@ class CashPawsSupabaseService {
     required String rewardSource,
   }) async {
     try {
-      // 1. Fetch current live balance variables
       final currentBalance = await getUserBalance(userId);
       final newBalance = currentBalance + pointsToCredit;
 
-      // 2. Perform an atomic update operation straight into Supabase profiles
       await _client
           .from('user_profiles')
           .update({'pawcoins_balance': newBalance})
           .eq('user_id', userId);
 
-      // 3. Log a detailed transactional row ledger entry for security auditing
       await _client.from('points_ledger').insert({
         'user_id': userId,
         'amount_changed': pointsToCredit,
@@ -52,7 +50,6 @@ class CashPawsSupabaseService {
       return false;
     }
   }
-}
 
   // Submit a dynamic withdrawal request directly to the pending admin ledger table
   Future<Map<String, dynamic>> processWithdrawalRequest({
@@ -62,24 +59,20 @@ class CashPawsSupabaseService {
     required double usdAmount, // 10, 20, 50, 100, 500, 1000 tiers
   }) async {
     try {
-      // 1. Convert requested USD amount back to required Pawcoins (1,000 coins = $0.10, so $10 = 100,000 coins)
       final int requiredCoins = (usdAmount * 10000).toInt();
       final int currentBalance = await getUserBalance(userId);
 
-      // 2. Security validation: Ensure user isn't trying to bypass local state checks
       if (currentBalance < requiredCoins) {
         return {'success': false, 'message': '❌ Insufficient Pawcoins balance.'};
       }
 
       final int updatedBalance = currentBalance - requiredCoins;
 
-      // 3. Atomically deduct the coins from the user profile table
       await _client
           .from('user_profiles')
           .update({'pawcoins_balance': updatedBalance})
           .eq('user_id', userId);
 
-      // 4. Insert transaction row ledger entry directly into pending admin cash-out table
       await _client.from('withdrawal_requests').insert({
         'user_id': userId,
         'method': payoutMethod,
