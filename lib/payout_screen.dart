@@ -1,57 +1,74 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'theme.dart';
-import 'payout_screen.dart';
-import 'home_tasks_panel.dart';
+import 'supabase_service.dart';
 
-class CashPawsHomeScreen extends StatefulWidget {
-  final String userId;
-  final int initialCoins;
+class CashPawsPayoutScreen extends StatefulWidget {
+  final int currentCoins;
+  final String currentUserId;
+  final Function(int updatedCoins) onBalanceChanged;
 
-  const CashPawsHomeScreen({
+  const CashPawsPayoutScreen({
     super.key,
-    required this.userId,
-    required this.initialCoins,
+    required this.currentCoins,
+    required this.currentUserId,
+    required this.onBalanceChanged,
   });
 
   @override
-  State<CashPawsHomeScreen> createState() => _CashPawsHomeScreenState();
+  State<CashPawsPayoutScreen> createState() => _CashPawsPayoutScreenState();
 }
 
-class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
-  int _totalPawCoins = 0;
-  
-  Timer? _miningTimer;
-  Duration _miningDurationRemaining = const Duration(hours: 3);
-  bool _isMiningActive = false;
-  bool _canClaimMiningCoins = false;
+class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
+  final _supabaseService = CashPawsSupabaseService();
+  final _accountController = TextEditingController();
+  String _method = 'PayPal';
+  double _tier = 10.0;
+  int _coins = 0;
+  bool _loading = false;
 
-  int _petGrowthPoints = 0;
-  String _petStage = 'Kitten/Baby';
-  String _petType = 'Cat';
-
-  RewardedAd? _homeRewardedAd;
+  BannerAd? _bannerAd;
+  bool _isBannerAdLoaded = false;
+  RewardedAd? _payoutRewardedAd;
   bool _isAdLoading = false;
+
+  final List<double> _tiers = const [10.0, 20.0, 50.0, 100.0, 500.0, 1000.0];
+  final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
   final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
   @override
   void initState() {
     super.initState();
-    _totalPawCoins = widget.initialCoins;
+    _coins = widget.currentCoins;
+    _loadBannerAd();
     _loadRewardedAdCache();
-    _evaluatePetEvolutionStage();
   }
 
   @override
   void dispose() {
-    _miningTimer?.cancel();
-    _homeRewardedAd?.dispose();
+    _accountController.dispose();
+    _bannerAd?.dispose();
+    _payoutRewardedAd?.dispose();
     super.dispose();
   }
 
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: _bannerAdUnitId,
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) => setState(() => _isBannerAdLoaded = true),
+        onAdFailedToLoad: (ad, err) {
+          ad.dispose();
+          debugPrint('Payout Banner failed to load: $err');
+        },
+      ),
+    )..load();
+  }
+
   void _loadRewardedAdCache() {
-    if (_isAdLoading || _homeRewardedAd != null) return;
+    if (_isAdLoading || _payoutRewardedAd != null) return;
     setState(() => _isAdLoading = true);
 
     RewardedAd.load(
@@ -59,86 +76,163 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          _homeRewardedAd = ad;
+          _payoutRewardedAd = ad;
           _isAdLoading = false;
         },
         onAdFailedToLoad: (err) {
-          _homeRewardedAd = null;
+          _payoutRewardedAd = null;
           _isAdLoading = false;
-          debugPrint('Dashboard ad cache failed: $err');
+          debugPrint('Payout video ad cache failed: $err');
         },
       ),
     );
   }
 
-  void _evaluatePetEvolutionStage() {
-    if (_petGrowthPoints >= 500) {
-      _petStage = 'Fully Grown Adult';
-    } else if (_petGrowthPoints >= 200) {
-      _petStage = 'Juvenile/Teen';
+  void _handleWithdrawalClick() {
+    final accountText = _accountController.text.trim();
+    if (accountText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⚠️ Enter account details.')));
+      return;
+    }
+    final int requiredCoins = (_tier * 1000).toInt(); // 1,000 coins = $1 base conversion calculation
+    if (_coins < requiredCoins) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Insufficient balance.')));
+      return;
+    }
+
+    if (_payoutRewardedAd != null) {
+      _payoutRewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+        _executeDatabaseWithdrawal();
+      });
     } else {
-      _petStage = 'Kitten/Baby';
+      _executeDatabaseWithdrawal(); // Safety fallback validation path processing
     }
   }
 
-  void _updateCoinsFromTasks(int earnedAmount) {
-    setState(() {
-      _totalPawCoins += earnedAmount;
-      _petGrowthPoints += (earnedAmount ~/ 2);
-      _evaluatePetEvolutionStage();
-    });
-  }
+  void _executeDatabaseWithdrawal() async {
+    final accountText = _accountController.text.trim();
+    setState(() => _loading = true);
 
-  void _startMiningSession() {
-    if (_isMiningActive) return;
+    final res = await _supabaseService.processWithdrawalRequest(
+      userId: widget.currentUserId,
+      payoutMethod: _method,
+      payoutAccount: accountText,
+      usdAmount: _tier,
+    );
 
-    setState(() {
-      _isMiningActive = true;
-      _canClaimMiningCoins = false;
-      _miningDurationRemaining = const Duration(hours: 3);
-    });
+    setState(() => _loading = false);
 
-    _miningTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
-      setState(() {
-        if (_miningDurationRemaining.inSeconds > 0) {
-          _miningDurationRemaining = _miningDurationRemaining - const Duration(seconds: 1);
-        } else {
-          _miningTimer?.cancel();
-          _isMiningActive = false;
-          _canClaimMiningCoins = true;
-        }
-      });
-    });
-  }
-
-  void _claimMiningRewards() {
-    if (!_canClaimMiningCoins) return;
-
-    if (_homeRewardedAd != null) {
-      _homeRewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        setState(() {
-          _totalPawCoins += 150;
-          _canClaimMiningCoins = false;
-          _petGrowthPoints += 50;
-          _evaluatePetEvolutionStage();
-        });
-        _loadRewardedAdCache();
-        _showSuccessSnackBar('🎉 Earned 150 PawCoins!');
-      });
-    } else {
-      _showSuccessSnackBar('Synchronizing ad ledger... Please try again.');
-      _loadRewardedAdCache();
+    if (res['success'] == true) {
+      setState(() => _coins = res['new_balance'] as int);
+      widget.onBalanceChanged(_coins);
+      _accountController.clear();
+      showDialog(
+        context: context,
+        builder: (c) => AlertDialog(
+          backgroundColor: CashPawsColors.cardNavy,
+          title: const Text('🎉 SUCCESS', style: TextStyle(color: Colors.white)),
+          content: Text(res['message'].toString(), style: const TextStyle(color: Colors.grey)),
+          actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('OK'))],
+        ),
+      );
     }
   }
 
-  void _showSuccessSnackBar(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: CashPawsColors.backgroundMidnight,
+      appBar: AppBar(
+        backgroundColor: CashPawsColors.backgroundMidnight,
+        title: const Text('REDEEM INCENTIVES', style: TextStyle(color: Colors.white, fontSize: 16)),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      color: CashPawsColors.cardNavy,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Live Balance:', style: TextStyle(color: Colors.grey)),
+                          Text('$_coins Coins (\$${(_coins / 1000).toStringAsFixed(2)})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('METHOD', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    ...['PayPal', 'GCash', 'Maya', 'UNO Wallet'].map((m) => RadioListTile<String>(
+                      title: Text(m, style: const TextStyle(color: Colors.white)),
+                      value: m,
+                      groupValue: _method,
+                      activeColor: CashPawsColors.neonGreen,
+                      onChanged: (v) => setState(() => _method = v!),
+                    )),
+                    const SizedBox(height: 20),
+                    const Text('TIER', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Wrap(
+                      spacing: 10,
+                      children: _tiers.map((t) => ChoiceChip(
+                        label: Text('\$$t', style: TextStyle(color: _tier == t ? Colors.black : Colors.white)),
+                        selected: _tier == t,
+                        selectedColor: CashPawsColors.neonGreen,
+                        backgroundColor: CashPawsColors.cardNavy,
+                        onSelected: (s) => setState(() => _tier = t),
+                      )).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _accountController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: CashPawsColors.cardNavy,
+                        hintText: _method == 'PayPal' ? 'email@paypal.com' : '09XXXXXXXXX',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    if (_method == 'UNO Wallet') ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        color: Colors.blue.withOpacity(0.1),
+                        child: const Text(
+                          '📌 Join One and grab a ₱100 bonus! Use code V98HAR on signup. Register through: https://uno.global',
+                          style: TextStyle(color: Colors.white, fontSize: 11),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
+                        onPressed: _loading ? null : _handleWithdrawalClick,
+                        child: Text(_loading ? 'SYNCING...' : 'CONFIRM WITHDRAWAL', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_isBannerAdLoaded && _bannerAd != null)
+              Container(
+                alignment: Alignment.center,
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
+          ],
+        ),
+      ),
+    );
   }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, "0");
-    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
-  }
+}
