@@ -27,65 +27,60 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
   int _coins = 0;
   bool _loading = false;
 
-  BannerAd? _bannerAd;
-  bool _isBannerAdLoaded = false;
-  RewardedAd? _payoutRewardedAd;
-  bool _isAdLoading = false;
+  // Monetization Layer Elements
+  BannerAd? _topBannerAd;
+  BannerAd? _bottomBannerAd;
+  bool _isTopBannerLoaded = false;
+  bool _isBottomBannerLoaded = false;
 
   final List<double> _tiers = const [10.0, 20.0, 50.0, 100.0, 500.0, 1000.0];
-  final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
-  final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
+  
+  // Official Google AdMob Test Banner Unit ID to bypass device authorization blocks
+  final String _testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
   @override
   void initState() {
     super.initState();
     _coins = widget.currentCoins;
-    _loadBannerAd();
-    _loadRewardedAdCache();
+    _initializeSafeBanners();
   }
 
   @override
   void dispose() {
     _accountController.dispose();
-    _bannerAd?.dispose();
-    _payoutRewardedAd?.dispose();
+    _topBannerAd?.dispose();
+    _bottomBannerAd?.dispose();
     super.dispose();
   }
 
-  void _loadBannerAd() {
-    _bannerAd = BannerAd(
-      adUnitId: _bannerAdUnitId,
+  void _initializeSafeBanners() {
+    // Top Banner Config
+    _topBannerAd = BannerAd(
+      adUnitId: _testBannerAdUnitId,
       request: const AdRequest(),
       size: AdSize.banner,
       listener: BannerAdListener(
-        onAdLoaded: (ad) => setState(() => _isBannerAdLoaded = true),
+        onAdLoaded: (ad) => setState(() => _isTopBannerLoaded = true),
         onAdFailedToLoad: (ad, err) {
           ad.dispose();
-          debugPrint('Payout Banner failed to load: $err');
+          debugPrint('Top Banner failed to render silently: $err');
         },
       ),
     )..load();
-  }
 
-  void _loadRewardedAdCache() {
-    if (_isAdLoading || _payoutRewardedAd != null) return;
-    setState(() => _isAdLoading = true);
-
-    RewardedAd.load(
-      adUnitId: _rewardedAdUnitId,
+    // Bottom Banner Config
+    _bottomBannerAd = BannerAd(
+      adUnitId: _testBannerAdUnitId,
       request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          _payoutRewardedAd = ad;
-          _isAdLoading = false;
-        },
-        onAdFailedToLoad: (err) {
-          _payoutRewardedAd = null;
-          _isAdLoading = false;
-          debugPrint('Payout video ad cache failed: $err');
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) => setState(() => _isBottomBannerLoaded = true),
+        onAdFailedToLoad: (ad, err) {
+          ad.dispose();
+          debugPrint('Bottom Banner failed to render silently: $err');
         },
       ),
-    );
+    )..load();
   }
 
   void _handleWithdrawalClick() {
@@ -94,19 +89,12 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⚠️ Enter account details.')));
       return;
     }
-    final int requiredCoins = (_tier * 1000).toInt(); // 1,000 coins = $1 base conversion calculation
+    final int requiredCoins = (_tier * 1000).toInt(); 
     if (_coins < requiredCoins) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Insufficient balance.')));
       return;
     }
-
-    if (_payoutRewardedAd != null) {
-      _payoutRewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        _executeDatabaseWithdrawal();
-      });
-    } else {
-      _executeDatabaseWithdrawal(); // Safety fallback validation path processing
-    }
+    _executeDatabaseWithdrawal();
   }
 
   void _executeDatabaseWithdrawal() async {
@@ -144,11 +132,22 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
       backgroundColor: CashPawsColors.backgroundMidnight,
       appBar: AppBar(
         backgroundColor: CashPawsColors.backgroundMidnight,
-        title: const Text('REDEEM INCENTIVES', style: TextStyle(color: Colors.white, fontSize: 16)),
+        elevation: 0,
+        title: const Text('REDEEM INCENTIVES', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
       ),
       body: SafeArea(
         child: Column(
           children: [
+            // Tactical Injection: Top Banner Ad Slot Container
+            if (_isTopBannerLoaded && _topBannerAd != null)
+              Container(
+                alignment: Alignment.center,
+                width: _topBannerAd!.size.width.toDouble(),
+                height: _topBannerAd!.size.height.toDouble(),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: AdWidget(ad: _topBannerAd!),
+              ),
+
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
@@ -157,7 +156,10 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      color: CashPawsColors.cardNavy,
+                      decoration: BoxDecoration(
+                        color: CashPawsColors.cardNavy,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -167,7 +169,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text('METHOD', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const Text('METHOD', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
                     ...['PayPal', 'GCash', 'Maya', 'UNO Wallet'].map((m) => RadioListTile<String>(
                       title: Text(m, style: const TextStyle(color: Colors.white)),
                       value: m,
@@ -176,7 +178,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                       onChanged: (v) => setState(() => _method = v!),
                     )),
                     const SizedBox(height: 20),
-                    const Text('TIER', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const Text('TIER', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
                     Wrap(
                       spacing: 10,
                       children: _tiers.map((t) => ChoiceChip(
@@ -196,13 +198,14 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                         fillColor: CashPawsColors.cardNavy,
                         hintText: _method == 'PayPal' ? 'email@paypal.com' : '09XXXXXXXXX',
                         hintStyle: const TextStyle(color: Colors.grey),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       ),
                     ),
                     const SizedBox(height: 20),
                     if (_method == 'UNO Wallet') ...[
                       Container(
                         padding: const EdgeInsets.all(12),
-                        color: Colors.blue.withOpacity(0.1),
+                        decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                         child: const Text(
                           '📌 Join One and grab a ₱100 bonus! Use code V98HAR on signup. Register through: https://uno.global',
                           style: TextStyle(color: Colors.white, fontSize: 11),
@@ -214,7 +217,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
+                        style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         onPressed: _loading ? null : _handleWithdrawalClick,
                         child: Text(_loading ? 'SYNCING...' : 'CONFIRM WITHDRAWAL', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                       ),
@@ -223,12 +226,15 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                 ),
               ),
             ),
-            if (_isBannerAdLoaded && _bannerAd != null)
+
+            // Tactical Injection: Bottom Banner Ad Slot Container
+            if (_isBottomBannerLoaded && _bottomBannerAd != null)
               Container(
                 alignment: Alignment.center,
-                width: _bannerAd!.size.width.toDouble(),
-                height: _bannerAd!.size.height.toDouble(),
-                child: AdWidget(ad: _bannerAd!),
+                width: _bottomBannerAd!.size.width.toDouble(),
+                height: _bottomBannerAd!.size.height.toDouble(),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: AdWidget(ad: _bottomBannerAd!),
               ),
           ],
         ),
