@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart'; // 1. Added AdMob dependency
 import 'theme.dart';
 import 'supabase_service.dart';
 
@@ -26,18 +27,47 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
   int _coins = 0;
   bool _loading = false;
 
+  // AdMob State Variables
+  BannerAd? _bannerAd;
+  bool _isBannerAdLoaded = false;
+
   final List<double> _tiers = const [10.0, 20.0, 50.0, 100.0, 500.0, 1000.0];
+
+  // AdMob Test Unit ID (Swap with your live AdMob banner ID before final APK generation)
+  final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
   @override
   void initState() {
     super.initState();
     _coins = widget.currentCoins;
+    _loadBannerAd(); // 2. Load the banner immediately on initialization
   }
 
   @override
   void dispose() {
     _accountController.dispose();
+    _bannerAd?.dispose(); // 3. Clean up the ad memory allocation
     super.dispose();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: _bannerAdUnitId,
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          ad.dispose();
+          // Fails silently so it never causes a gray screen or crash
+          debugPrint('AdMob Banner failed to load: $err'); 
+        },
+      ),
+    )..load();
   }
 
   void _submit() async {
@@ -80,82 +110,97 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CashPawsColors.backgroundMidnight, // Forces correct dark theme backdrop
       appBar: AppBar(
         backgroundColor: CashPawsColors.backgroundMidnight,
         title: const Text('REDEEM INCENTIVES', style: TextStyle(color: Colors.white, fontSize: 16)),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                color: CashPawsColors.cardNavy,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Live Balance:', style: TextStyle(color: Colors.grey)),
-                    Text('$_coins Coins (\$${(_coins / 10000).toStringAsFixed(2)})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      color: CashPawsColors.cardNavy,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Live Balance:', style: TextStyle(color: Colors.grey)),
+                          Text('$_coins Coins (\$${(_coins / 10000).toStringAsFixed(2)})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('METHOD', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    ...['PayPal', 'GCash', 'Maya', 'UNO Wallet'].map((m) => RadioListTile<String>(
+                      title: Text(m, style: const TextStyle(color: Colors.white)),
+                      value: m,
+                      groupValue: _method,
+                      activeColor: CashPawsColors.neonGreen,
+                      onChanged: (v) => setState(() => _method = v!),
+                    )),
+                    const SizedBox(height: 20),
+                    const Text('TIER', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Wrap(
+                      spacing: 10,
+                      children: _tiers.map((t) => ChoiceChip(
+                        label: Text('\$$t', style: TextStyle(color: _tier == t ? Colors.black : Colors.white)),
+                        selected: _tier == t,
+                        selectedColor: CashPawsColors.neonGreen,
+                        backgroundColor: CashPawsColors.cardNavy,
+                        onSelected: (s) => setState(() => _tier = t),
+                      )).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _accountController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: CashPawsColors.cardNavy,
+                        hintText: _method == 'PayPal' ? 'email@paypal.com' : '09XXXXXXXXX',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    if (_method == 'UNO Wallet') ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        color: Colors.blue.withOpacity(0.1),
+                        child: const Text(
+                          '📌 Join One and grab a ₱100 bonus! Use code V98HAR on signup. Register through: https://uno.global',
+                          style: TextStyle(color: Colors.white, fontSize: 11),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
+                        onPressed: _loading ? null : _submit,
+                        child: Text(_loading ? 'SYNCING...' : 'CONFIRM WITHDRAWAL', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text('METHOD', style: TextStyle(color: Colors.grey, fontSize: 12)),
-              ...['PayPal', 'GCash', 'Maya', 'UNO Wallet'].map((m) => RadioListTile<String>(
-                title: Text(m, style: const TextStyle(color: Colors.white)),
-                value: m,
-                groupValue: _method,
-                activeColor: CashPawsColors.neonGreen,
-                onChanged: (v) => setState(() => _method = v!),
-              )),
-              const SizedBox(height: 20),
-              const Text('TIER', style: TextStyle(color: Colors.grey, fontSize: 12)),
-              Wrap(
-                spacing: 10,
-                children: _tiers.map((t) => ChoiceChip(
-                  label: Text('\$$t', style: TextStyle(color: _tier == t ? Colors.black : Colors.white)),
-                  selected: _tier == t,
-                  selectedColor: CashPawsColors.neonGreen,
-                  backgroundColor: CashPawsColors.cardNavy,
-                  onSelected: (s) => setState(() => _tier = t),
-                )).toList(),
+            ),
+            // 4. Fixed Banner Placement Container at the very bottom of screen
+            if (_isBannerAdLoaded && _bannerAd != null)
+              Container(
+                alignment: Alignment.center,
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _accountController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: CashPawsColors.cardNavy,
-                  hintText: _method == 'PayPal' ? 'email@paypal.com' : '09XXXXXXXXX',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (_method == 'UNO Wallet') ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  color: Colors.blue.withOpacity(0.1),
-                  child: const Text(
-                    '📌 Join One and grab a ₱100 bonus! Use code V98HAR on signup. Register through: https://uno.global',
-                    style: TextStyle(color: Colors.white, fontSize: 11),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
-                  onPressed: _loading ? null : _submit,
-                  child: Text(_loading ? 'SYNCING...' : 'CONFIRM WITHDRAWAL', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
