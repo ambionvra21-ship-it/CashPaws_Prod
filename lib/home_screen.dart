@@ -1,4 +1,3 @@
-import 'home_tasks_panel.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -32,7 +31,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   Duration _miningTimeLeftLeft = const Duration(hours: 3);
   bool _isMiningSessionActive = false;
   bool _canClaimCompletedMining = false;
-  String _activeCompanionType = 'Cat'; // Companion profile defaults to Cat
+  String _activeCompanionType = 'Cat'; 
 
   // 3. Lucky Spin Wheel State Boundaries
   int _luckySpinsUsedCount = 0;
@@ -109,9 +108,9 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     setState(() {
       _hasClaimedCheckInToday = true;
       _consecutiveCheckInDays += 1;
-      _totalPawCoins += 250; // Secures your profit distribution structure ratio
+      _totalPawCoins += 250; 
     });
-    _showFeedbackToast('📆 Day $_consecutiveCheckInDays Claimed! +250 PawCoins added.');
+    _showFeedbackToast('📆 Day \$_consecutiveCheckInDays Claimed! +250 PawCoins added.');
   }
 
   // Feature 2 Execution Methods
@@ -181,7 +180,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
         _mockLiveStepsWalked = 0;
         _showFeedbackToast('🏃‍♂️ Daily step milestone achieved! +400 PawCoins.');
       } else {
-        _showFeedbackToast('🐾 Steps sync: $_mockLiveStepsWalked / $_dailyStepsTargetGoal recorded.');
+        _showFeedbackToast('🐾 Steps sync: \$_mockLiveStepsWalked / \$_dailyStepsTargetGoal recorded.');
       }
     });
   }
@@ -234,7 +233,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
 
   String _displayMiningTimeRemaining(Duration d) {
     String pad(int n) => n.toString().padLeft(2, '0');
-    return "${pad(d.inHours)}:${pad(d.inMinutes.remainder(60))}:${pad(d.inSeconds.remainder(60))}";
+    return "\${pad(d.inHours)}:\${pad(d.inMinutes.remainder(60))}:\${pad(d.inSeconds.remainder(60))}";
   }
 
     @override
@@ -389,7 +388,25 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       actionWidget: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
                         onPressed: _triggerLuckySpinAction,
-                        child: const Text('SPIN                    // FEATURE 5: Paws Step Walking Component
+                        child: const Text('SPIN', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // FEATURE 4: Paws Video Reward Module
+                    _buildFeatureCard(
+                      title: '4. Paws Video Reward',
+                      subtitle: 'Completed: $_premiumVideosWatchedCount / $_maxDailyVideosAllowed ad strings',
+                      icon: Icons.video_library,
+                      actionWidget: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
+                        onPressed: _watchPremiumVideoRewardAction,
+                        child: const Text('WATCH', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // FEATURE 5: Paws Step Walking Component
                     _buildFeatureCard(
                       title: '5. Paws Step Walking',
                       subtitle: 'Live Sensor Sync Tracker: $_mockLiveStepsWalked / $_dailyStepsTargetGoal steps',
@@ -402,7 +419,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     ),
                     const SizedBox(height: 14),
 
-                    // FEATURE 6: Paws Tap Coins Interactive Multiplier Block
+                                        // FEATURE 6: Paws Tap Coins Interactive Multiplier Block
                     _buildFeatureCard(
                       title: '6. Paws Tap Coins',
                       subtitle: 'Tap Tracker Meter: $_tapAccumulationTracker / 20 inputs clicked',
@@ -410,12 +427,12 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       actionWidget: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
                         onPressed: _handlePassiveCoinTapAction,
-                        child: const Text('TAP', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
+                        child: const Text('TAP', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
                       ),
                     ),
                     const SizedBox(height: 24),
 
-                    // FIXED CONTENT BOTTOM SLOTS: Central Payout Navigation Trigger Button
+                    // FIXED BOTTOM BUTTON: Central Withdrawal Navigation Hook
                     SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -434,7 +451,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
               ),
             ),
 
-            // FIXED BOTTOM SLOTS: Static Bottom AdMob Banner View Layout Layer
+            // FIXED BOTTOM AD SLOT: Static Bottom AdMob Banner Container
             if (_isBottomBannerAdLoaded && _bottomAdMobBanner != null)
               Container(
                 alignment: Alignment.center,
@@ -474,22 +491,5 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     );
   }
 }
-', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // FEATURE 4: Paws Video Reward Module
-                    _buildFeatureCard(
-                      title: '4. Paws Video Reward',
-                      subtitle: 'Completed: $_premiumVideosWatchedCount / $_maxDailyVideosAllowed ad strings',
-                      icon: Icons.video_library,
-                      actionWidget: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
-                        onPressed: _watchPremiumVideoRewardAction,
-                        child: const Text('WATCH', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
 
                     
