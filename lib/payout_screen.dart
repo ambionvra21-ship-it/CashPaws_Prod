@@ -33,8 +33,6 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
   bool _isBottomBannerLoaded = false;
 
   final List<double> _tiers = const [10.0, 20.0, 50.0, 100.0, 500.0, 1000.0];
-  
-  // Official Test Unit ID mapping to guarantee sandbox rendering operations
   final String _testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
   @override
@@ -80,15 +78,15 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
     )..load();
   }
 
-  void _handleWithdrawalClick() {
+    void _handleWithdrawalClick() {
     final accountText = _accountController.text.trim();
     if (accountText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⚠️ Enter account details.')));
       return;
     }
-    final int requiredCoins = (_tier * 10000).toInt(); // 1,000 coins = $1 base conversion metric tracking ratio
+    final int requiredCoins = (_tier * 10000).toInt(); 
     if (_coins < requiredCoins) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Insufficient balance.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Insufficient balance for this tier.')));
       return;
     }
     _executeDatabaseWithdrawal();
@@ -115,16 +113,23 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
         context: context,
         builder: (c) => AlertDialog(
           backgroundColor: CashPawsColors.cardNavy,
-          title: const Text('🎉 SUCCESS', style: TextStyle(color: Colors.white)),
+          title: const Text('🎉 SUCCESS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           content: Text(res['message'].toString(), style: const TextStyle(color: Colors.grey)),
-          actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('OK'))],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(c), 
+              child: const Text('OK', style: TextStyle(color: CashPawsColors.neonGreen, fontWeight: FontWeight.bold))
+            )
+          ],
         ),
       );
     }
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
+    double balanceInUsd = _coins / 10000.0;
+
     return Scaffold(
       backgroundColor: CashPawsColors.backgroundMidnight,
       appBar: AppBar(
@@ -144,6 +149,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: AdWidget(ad: _topBannerAd!),
               ),
+
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
@@ -159,41 +165,48 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Live Balance:', style: TextStyle(color: Colors.grey)),
-                          Text('$_coins Coins (\$${(_coins / 10000).toStringAsFixed(2)})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          const Text('Live Balance:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                          Text('$_coins Coins (\$${balanceInUsd.toStringAsFixed(2)})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Text('METHOD', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    const Text('METHOD', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
                     ...['PayPal', 'GCash', 'Maya', 'UNO Wallet'].map((m) => RadioListTile<String>(
-                      title: Text(m, style: const TextStyle(color: Colors.white)),
+                      title: Text(m, style: const TextStyle(color: Colors.white, fontSize: 14)),
                       value: m,
                       groupValue: _method,
+                      contentPadding: EdgeInsets.zero,
                       activeColor: CashPawsColors.neonGreen,
                       onChanged: (v) => setState(() => _method = v!),
                     )),
-                    const SizedBox(height: 20),
-                    const Text('TIER', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    const Text('TIER', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
                     Wrap(
                       spacing: 10,
+                      runSpacing: 10,
                       children: _tiers.map((t) => ChoiceChip(
-                        label: Text('\$$t', style: TextStyle(color: _tier == t ? Colors.black : Colors.white)),
+                        label: Text('\$$t', style: TextStyle(color: _tier == t ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                         selected: _tier == t,
                         selectedColor: CashPawsColors.neonGreen,
                         backgroundColor: CashPawsColors.cardNavy,
                         onSelected: (s) => setState(() => _tier = t),
                       )).toList(),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
+                    const Text('ACCOUNT RECIPIENT DETAILS', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
                     TextField(
                       controller: _accountController,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: CashPawsColors.cardNavy,
                         hintText: _method == 'PayPal' ? 'email@paypal.com' : '09XXXXXXXXX',
-                        hintStyle: const TextStyle(color: Colors.grey),
+                        hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       ),
                     ),
@@ -209,6 +222,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                       ),
                       const SizedBox(height: 20),
                     ],
+                    const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -218,7 +232,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         onPressed: _loading ? null : _handleWithdrawalClick,
-                        child: Text(_loading ? 'SYNCING...' : 'CONFIRM WITHDRAWAL', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                        child: Text(_loading ? 'SYNCING...' : 'CONFIRM WITHDRAWAL', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14)),
                       ),
                     ),
                   ],
