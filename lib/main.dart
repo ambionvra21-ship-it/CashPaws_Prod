@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'theme.dart';
-import 'home_screen.dart';
+import 'home_screen.dart'; // Safely targets your unified dashboard script file
 
 void main() async {
-  // Ensure Flutter engine bindings are completely ready before async boots
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize the Google Mobile Ads SDK framework loop
+  
+  // Safe initialization framework loop
   try {
     await MobileAds.instance.initialize();
   } catch (e) {
@@ -25,19 +24,15 @@ class CashPawsApp extends StatelessWidget {
     return MaterialApp(
       title: 'CashPaws',
       debugShowCheckedModeBanner: false,
-      
-      // Enforce your Midnight Dark Theme styling rules globally
       theme: ThemeData(
         scaffoldBackgroundColor: CashPawsColors.backgroundMidnight,
         primaryColor: CashPawsColors.neonGreen,
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      
-      // Automatically loads the dashboard with a dummy user profile configuration for sandbox testing
       home: const CashPawsHomeScreen(
         userId: 'test_sandbox_user_101',
-        initialCoins: 2500, // Pre-loads 2,500 coins so you can test withdrawal limits instantly
+        initialCoins: 2650, // Pre-loads initial sandbox currency balance tracker
       ),
     );
   }
