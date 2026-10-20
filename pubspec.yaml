@@ -1,26 +1,30 @@
 name: cashpaws
-description: "A secure, passive earning reward application."
+description: "A gamified virtual pet earning reward application."
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '^3.6.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
-  
-  # 🌟 Google Mobile Ads package for Banner, Interstitial, and Rewarded Ads
+
+  # Core Backend & State Architecture
+  supabase_flutter: ^2.0.0 # Make sure this matches your schema build
+  crypto: ^3.0.3
+
+  # Google Mobile Ads SDK (Required for Banner & Rewarded Ads)
   google_mobile_ads: ^5.1.0
 
-  # 🌟 Supabase Integration Package for Cloud Point-Tracking
-  supabase_flutter: ^2.8.3
+  # UI Design Dependencies
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
+  # Add asset declarations here if your animal profile pictures are local
