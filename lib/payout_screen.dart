@@ -1,149 +1,144 @@
-class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
-  final _supabaseService = CashPawsSupabaseService();
-  final _accountController = TextEditingController();
-  String _method = 'PayPal';
-  double _tier = 10.0;
-  int _coins = 0;
-  bool _loading = false;
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'theme.dart';
+import 'payout_screen.dart';
+import 'home_tasks_panel.dart';
 
-  // AdMob State Variables
-  BannerAd? _bannerAd;
-  bool _isBannerAdLoaded = false;
-  RewardedAd? _rewardedAd; // Added tracker for the payout video wall
-  bool _isRewardedAdLoading = false;
+class CashPawsHomeScreen extends StatefulWidget {
+  final String userId;
+  final int initialCoins;
 
-  final List<double> _tiers = const [10.0, 20.0, 50.0, 100.0, 500.0, 1000.0];
+  const CashPawsHomeScreen({
+    super.key,
+    required this.userId,
+    required this.initialCoins,
+  });
 
-  // AdMob Test Unit IDs
-  final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
-  final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917'; // Rewarded Test ID
+  @override
+  State<CashPawsHomeScreen> createState() => _CashPawsHomeScreenState();
+}
+
+class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
+  int _totalPawCoins = 0;
+  
+  Timer? _miningTimer;
+  Duration _miningDurationRemaining = const Duration(hours: 3);
+  bool _isMiningActive = false;
+  bool _canClaimMiningCoins = false;
+
+  int _petGrowthPoints = 0;
+  String _petStage = 'Kitten/Baby';
+  String _petType = 'Cat';
+
+  RewardedAd? _homeRewardedAd;
+  bool _isAdLoading = false;
+  final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
   @override
   void initState() {
     super.initState();
-    _coins = widget.currentCoins;
-    _loadBannerAd();
-    _loadRewardedAd(); // Cache the rewarded video wall ahead of time
+    _totalPawCoins = widget.initialCoins;
+    _loadRewardedAdCache();
+    _evaluatePetEvolutionStage();
   }
 
   @override
   void dispose() {
-    _accountController.dispose();
-    _bannerAd?.dispose();
-    _rewardedAd?.dispose(); // Clear video memory footprint
+    _miningTimer?.cancel();
+    _homeRewardedAd?.dispose();
     super.dispose();
   }
 
-  void _loadBannerAd() {
-    _bannerAd = BannerAd(
-      adUnitId: _bannerAdUnitId,
-      request: const AdRequest(),
-      size: AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) => setState(() => _isBannerAdLoaded = true),
-        onAdFailedToLoad: (ad, err) {
-          ad.dispose();
-          debugPrint('AdMob Banner failed to load: $err'); 
-        },
-      ),
-    )..load();
-  }
+  void _loadRewardedAdCache() {
+    if (_isAdLoading || _homeRewardedAd != null) return;
+    setState(() => _isAdLoading = true);
 
-  // Pre-caches the video overlay to guarantee zero delay when clicking withdrawal
-  void _loadRewardedAd() {
-    if (_isRewardedAdLoading || _rewardedAd != null) return;
-    
-    setState(() => _isRewardedAdLoading = true);
-    
     RewardedAd.load(
       adUnitId: _rewardedAdUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          _rewardedAd = ad;
-          _isRewardedAdLoading = false;
-          _setupAdCallbacks();
+          _homeRewardedAd = ad;
+          _isAdLoading = false;
         },
         onAdFailedToLoad: (err) {
-          _rewardedAd = null;
-          _isRewardedAdLoading = false;
-          debugPrint('Rewarded ad failed to cache: $err');
+          _homeRewardedAd = null;
+          _isAdLoading = false;
+          debugPrint('Dashboard ad cache failed: $err');
         },
       ),
     );
   }
 
-  void _setupAdCallbacks() {
-    if (_rewardedAd == null) return;
-    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        _rewardedAd = null;
-        _loadRewardedAd(); // Instantly re-cache next ad video thread
-      },
-      onAdFailedToShowFullScreenContent: (ad, err) {
-        ad.dispose();
-        _rewardedAd = null;
-        _loadRewardedAd();
-        // Fallback execution option: lets the user process cashout even if AdMob network breaks locally
-        _executeDatabaseWithdrawal(); 
-      },
-    );
+  void _evaluatePetEvolutionStage() {
+    if (_petGrowthPoints >= 500) {
+      _petStage = 'Fully Grown Adult';
+    } else if (_petGrowthPoints >= 200) {
+      _petStage = 'Juvenile/Teen';
+    } else {
+      _petStage = 'Kitten/Baby';
+    }
   }
 
-  // Intercepts the click action to trigger validation and show video ads
-  void _handleWithdrawalClick() {
-    final accountText = _accountController.text.trim();
-    if (accountText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⚠️ Enter account details.')));
-      return;
-    }
-    final int requiredCoins = (_tier * 10000).toInt();
-    if (_coins < requiredCoins) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Insufficient balance.')));
-      return;
-    }
+  void _updateCoinsFromTasks(int earnedAmount) {
+    setState(() {
+      _totalPawCoins += earnedAmount;
+      _petGrowthPoints += (earnedAmount ~/ 2);
+      _evaluatePetEvolutionStage();
+    });
+  }
 
-    // Force ad verification rule check
-    if (_rewardedAd != null) {
-      _rewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        // User successfully finished watching video payload sequence -> trigger submission
-        _executeDatabaseWithdrawal();
+  void _startMiningSession() {
+    if (_isMiningActive) return;
+
+    setState(() {
+      _isMiningActive = true;
+      _canClaimMiningCoins = false;
+      _miningDurationRemaining = const Duration(hours: 3);
+    });
+
+    _miningTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      setState(() {
+        if (_miningDurationRemaining.inSeconds > 0) {
+          _miningDurationRemaining = _miningDurationRemaining - const Duration(seconds: 1);
+        } else {
+          _miningTimer?.cancel();
+          _isMiningActive = false;
+          _canClaimMiningCoins = true;
+        }
+      });
+    });
+  }
+
+  void _claimMiningRewards() {
+    if (!_canClaimMiningCoins) return;
+
+    if (_homeRewardedAd != null) {
+      _homeRewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+        setState(() {
+          _totalPawCoins += 150;
+          _canClaimMiningCoins = false;
+          _petGrowthPoints += 50;
+          _evaluatePetEvolutionStage();
+        });
+        _loadRewardedAdCache();
+        _showSuccessSnackBar('🎉 Earned 150 PawCoins!');
       });
     } else {
-      // If network fill rate drops or lag happens, fallback processing prevents UX lockouts
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Connecting to verified security network... Please try again.'))
-      );
-      _loadRewardedAd();
+      _showSuccessSnackBar('Synchronizing ad ledger... Please try again.');
+      _loadRewardedAdCache();
     }
   }
 
-  void _executeDatabaseWithdrawal() async {
-    final accountText = _accountController.text.trim();
-    setState(() => _loading = true);
-    
-    final res = await _supabaseService.processWithdrawalRequest(
-      userId: widget.currentUserId,
-      payoutMethod: _method,
-      payoutAccount: accountText,
-      usdAmount: _tier,
-    );
-    
-    setState(() => _loading = false);
+  void _showSuccessSnackBar(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
 
-    if (res['success'] == true) {
-      setState(() => _coins = res['new_balance'] as int);
-      widget.onBalanceChanged(_coins);
-      _accountController.clear();
-      showDialog(
-        context: context,
-        builder: (c) => AlertDialog(
-          backgroundColor: CashPawsColors.cardNavy,
-          title: const Text('🎉 SUCCESS', style: TextStyle(color: Colors.white)),
-          content: Text(res['message'].toString(), style: const TextStyle(color: Colors.grey)),
-          actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('OK'))],
-        ),
-      );
-    }
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
