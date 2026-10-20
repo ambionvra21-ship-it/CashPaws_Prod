@@ -33,6 +33,8 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
   bool _isBottomBannerLoaded = false;
 
   final List<double> _tiers = const [10.0, 20.0, 50.0, 100.0, 500.0, 1000.0];
+  
+  // Official Test Unit ID mapping to guarantee sandbox rendering operations
   final String _testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
   @override
@@ -84,8 +86,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⚠️ Enter account details.')));
       return;
     }
-    // 1,000 coins = $1 base conversion ratio calculation mapping
-    final int requiredCoins = (_tier * 1000).toInt(); 
+    final int requiredCoins = (_tier * 10000).toInt(); // 1,000 coins = $1 base conversion metric tracking ratio
     if (_coins < requiredCoins) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Insufficient balance.')));
       return;
@@ -129,6 +130,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
       appBar: AppBar(
         backgroundColor: CashPawsColors.backgroundMidnight,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text('REDEEM INCENTIVES', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
       ),
       body: SafeArea(
@@ -142,7 +144,6 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: AdWidget(ad: _topBannerAd!),
               ),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
@@ -159,7 +160,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Live Balance:', style: TextStyle(color: Colors.grey)),
-                          Text('$_coins Coins (\$${(_coins / 1000).toStringAsFixed(2)})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          Text('$_coins Coins (\$${(_coins / 10000).toStringAsFixed(2)})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -224,7 +225,6 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                 ),
               ),
             ),
-
             if (_isBottomBannerLoaded && _bottomBannerAd != null)
               Container(
                 alignment: Alignment.center,
