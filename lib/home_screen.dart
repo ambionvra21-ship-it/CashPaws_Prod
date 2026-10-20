@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'theme.dart';
 import 'payout_screen.dart';
-// import 'walk_screen.dart'; // Uncomment once fully verified in your project tree
+import 'home_tasks_panel.dart'; // Safely imported from your flat lib directory structure
 
 class CashPawsHomeScreen extends StatefulWidget {
   final String userId;
@@ -28,7 +28,12 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   bool _isMiningActive = false;
   bool _canClaimMiningCoins = false;
 
-  // AdMob Handlers
+  // Animal Growth State Engine Tracker Variables
+  int _petGrowthPoints = 0;
+  String _petStage = 'Kitten/Baby';
+  String _petType = 'Cat'; // Can alternate dynamically between Cat, Dog, Monkey, etc.
+
+  // AdMob Infrastructure Handlers
   RewardedAd? _homeRewardedAd;
   bool _isAdLoading = false;
   final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917'; // Test ID
@@ -38,6 +43,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     super.initState();
     _totalPawCoins = widget.initialCoins;
     _loadRewardedAdCache();
+    _evaluatePetEvolutionStage();
   }
 
   @override
@@ -68,7 +74,24 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     );
   }
 
-  // Starts the 3-Hour Tap-To-Earn cloud miner node sequence
+  void _evaluatePetEvolutionStage() {
+    if (_petGrowthPoints >= 500) {
+      _petStage = 'Fully Grown Adult';
+    } else if (_petGrowthPoints >= 200) {
+      _petStage = 'Juvenile/Teen';
+    } else {
+      _petStage = 'Kitten/Baby';
+    }
+  }
+
+  void _updateCoinsFromTasks(int earnedAmount) {
+    setState(() {
+      _totalPawCoins += earnedAmount;
+      _petGrowthPoints += (earnedAmount ~/ 2); // Pets grow passively as users earn coins
+      _evaluatePetEvolutionStage();
+    });
+  }
+
   void _startMiningSession() {
     if (_isMiningActive) return;
 
@@ -86,23 +109,24 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
         } else {
           _miningTimer?.cancel();
           _isMiningActive = false;
-          _canClaimMiningCoins = true; // Unlocks the claim coin state layer
+          _canClaimMiningCoins = true;
         }
       });
     });
   }
 
-  // Intercepts the reward submission using your AdMob gating layer
   void _claimMiningRewards() {
     if (!_canClaimMiningCoins) return;
 
     if (_homeRewardedAd != null) {
       _homeRewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
         setState(() {
-          _totalPawCoins += 150; // Secure distribution allocation rule amount
+          _totalPawCoins += 150;
           _canClaimMiningCoins = false;
+          _petGrowthPoints += 50; // Extra evolutionary growth points award bump
+          _evaluatePetEvolutionStage();
         });
-        _loadRewardedAdCache(); // Refresh back-buffer ad cache thread
+        _loadRewardedAdCache();
         _showSuccessSnackBar('🎉 Earned 150 PawCoins!');
       });
     } else {
@@ -122,7 +146,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CashPawsColors.backgroundMidnight,
@@ -151,15 +175,18 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Balance Tracking Widget Panel
+              // Live Coin Balance Tracker Banner
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: CashPawsColors.cardNavy, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: CashPawsColors.cardNavy, 
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -168,65 +195,145 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
 
-              // 3-Hour Tap to Earn / Cloud Mining Modular Interface
+              // Virtual Pet Growth & Evolutionary Avatar Display Module
+              const Text('VIRTUAL PET COMPANION', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: CashPawsColors.cardNavy,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        // Renders a styled icon silhouette matching the active pet category
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: CashPawsColors.backgroundMidnight,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: CashPawsColors.neonGreen, width: 2),
+                          ),
+                          child: Icon(
+                            _petType == 'Cat' ? Icons.pets : Icons.cruelty_free,
+                            color: CashPawsColors.neonGreen,
+                            size: 40,
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Current Status: $_petStage', style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text('Growth Points: $_petGrowthPoints XP', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                            const SizedBox(height: 6),
+                            // Quick toggle button layout allowing users to swap companions smoothly
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _petType = _petType == 'Cat' ? 'Dog' : 'Cat';
+                                });
+                              },
+                              child: Text(
+                                'Swap Companion Profile (Active: $_petType)',
+                                style: const TextStyle(color: CashPawsColors.neonGreen, fontSize: 11, decoration: TextDecoration.underline),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Visual progress indicator tracking growth progression bar layers
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: (_petGrowthPoints % 200) / 200.0,
+                        backgroundColor: CashPawsColors.backgroundMidnight,
+                        valueColor: const AlwaysStoppedAnimation<Color>(CashPawsColors.neonGreen),
+                        minHeight: 8,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // 3-Hour Tap to Earn Cloud Miner Section
               const Text('TAP TO EARN MINER', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: CashPawsColors.cardNavy, borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: CashPawsColors.cardNavy,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Column(
                   children: [
                     if (_isMiningActive) ...[
                       const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(CashPawsColors.neonGreen)),
                       const SizedBox(height: 15),
-                      Text('Mining Active: ${_formatDuration(_miningDurationRemaining)}', style: const TextStyle(color: Colors.white, fontSize: 16)),
+                      Text('Mining Active: ${_formatDuration(_miningDurationRemaining)}', style: const TextStyle(color: Colors.white, fontSize: 15)),
                     ] else if (_canClaimMiningCoins) ...[
                       ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen, minimumSize: const Size(double.infinity, 48)),
+                        style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen, minimumSize: const Size(double.infinity, 44)),
                         onPressed: _claimMiningRewards,
-                        child: const Text('CLAIM 150 PAWCOINS (WATCH AD)', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                        child: const Text('CLAIM 150 PAWCOINS (WATCH AD)', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
                       ),
                     ] else ...[
                       ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[800], minimumSize: const Size(double.infinity, 48)),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[800], minimumSize: const Size(double.infinity, 44)),
                         onPressed: _startMiningSession,
-                        child: const Text('START 3-HOUR MINING SESSION', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        child: const Text('START 3-HOUR MINING SESSION', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                       ),
                     ],
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
 
-              // Background Active Step Counter Route Quick-Link Panel
+              // Embedded Live Daily Bounties Tasks Panel Sub-Widget Reference
+              CashPawsTasksPanel(
+                currentCoins: _totalPawCoins,
+                onCoinsEarned: _updateCoinsFromTasks,
+              ),
+              const SizedBox(height: 24),
+
+              // Passive Background Step Counter Quick-Link Router Entry Card
               const Text('PASSIVE TRACKERS', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               InkWell(
                 onTap: () {
-                  // Navigation target route to your existing background walking logic screen
-                  _showSuccessSnackBar('Syncing background step ledger stream...');
+                  _showSuccessSnackBar('Syncing background step ledger stream sensors...');
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: CashPawsColors.cardNavy, borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: CashPawsColors.cardNavy,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.directions_walk, color: CashPawsColors.neonGreen, size: 32),
-                      const SizedBox(width: 15),
-                      Expanded(
+                      const Icon(Icons.directions_walk, color: CashPawsColors.neonGreen, size: 28),
+                      const SizedBox(width: 12),
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Background Step Counter', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Text('Syncing live phone sensors...', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                            Text('Background Step Counter', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                            SizedBox(height: 2),
+                            Text('Syncing live phone sensors...', style: TextStyle(color: Colors.grey, fontSize: 11)),
                           ],
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+                      const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 14),
                     ],
                   ),
                 ),
