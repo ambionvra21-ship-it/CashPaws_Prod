@@ -73,7 +73,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   }
 
   void _initializeUnifiedAdMobBanners() {
-    // Allocates and loads top layout monetization bar
     _topAdMobBanner = BannerAd(
       adUnitId: _testBannerUnitId,
       request: const AdRequest(),
@@ -87,7 +86,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
       ),
     )..load();
 
-    // Allocates and loads bottom layout monetization bar
     _bottomAdMobBanner = BannerAd(
       adUnitId: _testBannerUnitId,
       request: const AdRequest(),
@@ -110,7 +108,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
       _consecutiveCheckInDays += 1;
       _totalPawCoins += 250; 
     });
-    _showFeedbackToast('📆 Day \$_consecutiveCheckInDays Claimed! +250 PawCoins added.');
+    _showFeedbackToast("📆 Day $_consecutiveCheckInDays Claimed! +250 PawCoins added.");
   }
 
   // Feature 2 Execution Methods
@@ -180,7 +178,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
         _mockLiveStepsWalked = 0;
         _showFeedbackToast('🏃‍♂️ Daily step milestone achieved! +400 PawCoins.');
       } else {
-        _showFeedbackToast('🐾 Steps sync: \$_mockLiveStepsWalked / \$_dailyStepsTargetGoal recorded.');
+        _showFeedbackToast("🐾 Steps sync: $_mockLiveStepsWalked / $_dailyStepsTargetGoal recorded.");
       }
     });
   }
@@ -233,7 +231,8 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
 
   String _displayMiningTimeRemaining(Duration d) {
     String pad(int n) => n.toString().padLeft(2, '0');
-    return "\${pad(d.inHours)}:\${pad(d.inMinutes.remainder(60))}:\${pad(d.inSeconds.remainder(60))}";
+    // Tactical Fix: Fixed double-quotes allocation string execution syntax
+    return "${pad(d.inHours)}:${pad(d.inMinutes.remainder(60))}:${pad(d.inSeconds.remainder(60))}";
   }
 
     @override
@@ -273,8 +272,8 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Balance: $_totalPawCoins / $_targetCoinsThreshold PawCoins', style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-                      Text('(\$${estimatedUsdVal.toStringAsFixed(2)} / \$10.00 Target)', style: const TextStyle(color: CashPawsColors.neonGreen, fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text("Balance: $_totalPawCoins / $_targetCoinsThreshold PawCoins", style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text("(\$${estimatedUsdVal.toStringAsFixed(2)} / \$10.00 Target)", style: const TextStyle(color: CashPawsColors.neonGreen, fontSize: 12, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -298,8 +297,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: AdWidget(ad: _topAdMobBanner!),
               ),
-
-                        Expanded(
+            Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
@@ -309,7 +307,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     _buildFeatureCard(
                       title: '1. Daily Check-In Streak',
                       subtitle: _hasClaimedCheckInToday 
-                          ? 'Claimed Today (Streak: $_consecutiveCheckInDays)' 
+                          ? "Claimed Today (Streak: $_consecutiveCheckInDays)" 
                           : 'Daily reward of +250 PawCoins is waiting!',
                       icon: Icons.calendar_today,
                       actionWidget: ElevatedButton(
@@ -337,7 +335,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                               const Spacer(),
                               InkWell(
                                 onTap: () => setState(() => _activeCompanionType = _activeCompanionType == 'Cat' ? 'Dog' : 'Cat'),
-                                child: Text('($_activeCompanionType Visual Active)', style: const TextStyle(color: CashPawsColors.neonGreen, fontSize: 11, decoration: TextDecoration.underline)),
+                                child: Text("($_activeCompanionType Visual Active)", style: const TextStyle(color: CashPawsColors.neonGreen, fontSize: 11, decoration: TextDecoration.underline)),
                               ),
                             ],
                           ),
@@ -358,7 +356,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   if (_isMiningSessionActive)
-                                    Text('Time Left: ${_displayMiningTimeRemaining(_miningTimeLeftLeft)}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold))
+                                    Text("Time Left: ${_displayMiningTimeRemaining(_miningTimeLeftLeft)}", style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold))
                                   else if (_canClaimCompletedMining)
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
@@ -383,7 +381,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     // FEATURE 3: Spin Wheel Action Module
                     _buildFeatureCard(
                       title: '3. Lucky Spin Wheel',
-                      subtitle: 'Used today: $_luckySpinsUsedCount / $_maxDailySpinsAllowed sessions',
+                      subtitle: "Used today: $_luckySpinsUsedCount / $_maxDailySpinsAllowed sessions",
                       icon: Icons.hourglass_top_rounded,
                       actionWidget: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
@@ -393,10 +391,10 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     ),
                     const SizedBox(height: 14),
 
-                    // FEATURE 4: Paws Video Reward Module
+                                        // FEATURE 4: Paws Video Reward Module
                     _buildFeatureCard(
                       title: '4. Paws Video Reward',
-                      subtitle: 'Completed: $_premiumVideosWatchedCount / $_maxDailyVideosAllowed ad strings',
+                      subtitle: "Completed: $_premiumVideosWatchedCount / $_maxDailyVideosAllowed ad strings",
                       icon: Icons.video_library,
                       actionWidget: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
@@ -409,7 +407,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     // FEATURE 5: Paws Step Walking Component
                     _buildFeatureCard(
                       title: '5. Paws Step Walking',
-                      subtitle: 'Live Sensor Sync Tracker: $_mockLiveStepsWalked / $_dailyStepsTargetGoal steps',
+                      subtitle: "Live Sensor Sync Tracker: $_mockLiveStepsWalked / $_dailyStepsTargetGoal steps",
                       icon: Icons.directions_walk,
                       actionWidget: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
@@ -422,12 +420,12 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                                         // FEATURE 6: Paws Tap Coins Interactive Multiplier Block
                     _buildFeatureCard(
                       title: '6. Paws Tap Coins',
-                      subtitle: 'Tap Tracker Meter: $_tapAccumulationTracker / 20 inputs clicked',
+                      subtitle: "Tap Tracker Meter: $_tapAccumulationTracker / 20 inputs clicked",
                       icon: Icons.touch_app,
                       actionWidget: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen),
                         onPressed: _handlePassiveCoinTapAction,
-                        child: const Text('TAP', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
+                        child: const Text('TAP', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -491,5 +489,3 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     );
   }
 }
-
-                    
