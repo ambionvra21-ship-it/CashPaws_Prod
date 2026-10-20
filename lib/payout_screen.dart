@@ -229,7 +229,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
               Container(
                 alignment: Alignment.center,
                 width: _bottomBannerAd!.size.width.toDouble(),
-                height: _bottomAdMobBanner!.size.height.toDouble(), // Matches height dynamically
+                height: _bottomBannerAd!.size.height.toDouble(),
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: AdWidget(ad: _bottomBannerAd!),
               ),
