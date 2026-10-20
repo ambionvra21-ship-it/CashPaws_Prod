@@ -49,7 +49,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   // 6. Paws Tap Coins Passive Clicking Variables
   int _tapAccumulationTracker = 0;
 
-  // AdMob Platform Engine Trackers
+  // Monetization Layers Single + Double Banner System Trackers
   BannerAd? _dashboardSingleBottomBanner;
   BannerAd? _featureDoubleBannerA;
   BannerAd? _featureDoubleBannerB;
@@ -64,7 +64,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   final String _testBannerUnitId = 'ca-app-pub-3940256099942544/6300978111';
   final String _testRewardedUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
-    @override
+  @override
   void initState() {
     super.initState();
     _totalPawCoins = widget.initialCoins;
@@ -88,7 +88,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
       size: AdSize.banner,
       listener: BannerAdListener(
         onAdLoaded: (ad) => setState(() => _isDashboardBannerLoaded = true),
-        onAdFailedToLoad: (ad, err) { ad.dispose(); debugPrint('Dashboard banner fail: $err'); },
+        onAdFailedToLoad: (ad, err) { ad.dispose(); debugPrint('Floor single banner fail: $err'); },
       ),
     )..load();
 
@@ -98,7 +98,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
       size: AdSize.banner,
       listener: BannerAdListener(
         onAdLoaded: (ad) => setState(() => _isDoubleBannerALoaded = true),
-        onAdFailedToLoad: (ad, err) { ad.dispose(); debugPrint('Double banner A fail: $err'); },
+        onAdFailedToLoad: (ad, err) { ad.dispose(); debugPrint('Double banner tracking A error: $err'); },
       ),
     )..load();
 
@@ -108,7 +108,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
       size: AdSize.banner,
       listener: BannerAdListener(
         onAdLoaded: (ad) => setState(() => _isDoubleBannerBLoaded = true),
-        onAdFailedToLoad: (ad, err) { ad.dispose(); debugPrint('Double banner B fail: $err'); },
+        onAdFailedToLoad: (ad, err) { ad.dispose(); debugPrint('Double banner tracking B error: $err'); },
       ),
     )..load();
 
@@ -130,7 +130,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
         onAdFailedToLoad: (err) {
           _cashPawsRewardedAdObject = null;
           _isAdNetworkLoading = false;
-          debugPrint('Rewarded ad cache failed: $err');
+          debugPrint('Rewarded ad system loop failure: $err');
         },
       ),
     );
@@ -141,7 +141,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
       _cashPawsRewardedAdObject!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
         setState(onAdSuccessReward);
         _cashPawsRewardedAdObject = null;
-        _preCacheRewardedAdLoop();
+        _preCacheRewardedAdLoop(); 
       });
     } else {
       setState(onAdSuccessReward);
@@ -284,8 +284,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     String pad(int n) => n.toString().padLeft(2, '0');
     return "${pad(d.inHours)}:${pad(d.inMinutes.remainder(60))}:${pad(d.inSeconds.remainder(60))}";
   }
-
-    // Tactical Injection: The Interactive High-Density Double-Banner Modal View Framework
   void _showInteractiveFeatureModal(String title, String description, VoidCallback onActionButtonPressed) {
     showModalBottomSheet(
       context: context,
@@ -301,7 +299,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // High-Density Double Banner System Layout Header Frame Blocks
                     if (_isDoubleBannerALoaded && _featureDoubleBannerA != null)
                       Container(
                         alignment: Alignment.center,
@@ -350,7 +347,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     );
   }
 
-  // Tactical Injection: The Profile Overlay Panel Screen View Configuration Sheet
   void _openUserProfileInfoSheet() {
     showModalBottomSheet(
       context: context,
@@ -395,8 +391,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: CashPawsColors.backgroundMidnight,
-      
-      // Strict Request: Hamburger sidebar drawer layout implementation block
       drawer: Drawer(
         backgroundColor: CashPawsColors.backgroundMidnight,
         child: Column(
@@ -423,18 +417,15 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
           ],
         ),
       ),
-
       appBar: AppBar(
         backgroundColor: CashPawsColors.backgroundMidnight,
         elevation: 0,
-        // Strict Request: Hamburger button asset opens drawer navigation panel
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         title: const Text('🐾 CASHPAWS HUB', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
         actions: [
-          // Strict Request: Profile icon triggers information overlay sheet
           IconButton(
             icon: const Icon(Icons.account_circle, color: Colors.white, size: 26),
             onPressed: _openUserProfileInfoSheet,
@@ -445,7 +436,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
             body: SafeArea(
         child: Column(
           children: [
-            // HIGH-VISIBILITY PROGRESS HEADER BAR VIEW CONTAINER
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               child: Container(
@@ -483,15 +473,12 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                 ),
               ),
             ),
-
-            // PRIMARY SCROLLABLE INTERFACE CARD MODULE ARRAY
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // FEATURE 1: Daily Check-In Streak
                     _buildFeatureCard(
                       title: '1. Daily Check-In Streak',
                       subtitle: _hasClaimedCheckInToday ? 'Claimed Today (Streak: $_consecutiveCheckInDays)' : 'Daily reward of +250 PawCoins is waiting!',
@@ -503,8 +490,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-
-                    // FEATURE 2: Paws Mining Node View Container with Avatar Silhouette Frame
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(color: CashPawsColors.cardNavy, borderRadius: BorderRadius.circular(12)),
@@ -533,7 +518,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                                 child: Icon(_activeCompanionType == 'Cat' ? Icons.pets : Icons.cruelty_free, color: CashPawsColors.neonGreen, size: 30),
                               ),
                               Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   if (_isMiningSessionActive)
                                     Text('Time Left: ${_displayMiningTimeRemaining(_miningTimeLeftLeft)}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold))
@@ -558,8 +542,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     ),
                     const SizedBox(height: 14),
 
-                    // FEATURE 3: Lucky Spin Wheel
-                    _buildFeatureCard(
+                                        _buildFeatureCard(
                       title: '3. Lucky Spin Wheel',
                       subtitle: 'Used today: $_luckySpinsUsedCount / $_maxDailySpinsAllowed sessions',
                       icon: Icons.hourglass_top_rounded,
@@ -570,8 +553,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-
-                                        // FEATURE 4: Paws Video Reward
                     _buildFeatureCard(
                       title: '4. Paws Video Reward',
                       subtitle: 'Completed: $_premiumVideosWatchedCount / $_maxDailyVideosAllowed ad strings',
@@ -583,8 +564,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-
-                    // FEATURE 5: Paws Step Walking
                     _buildFeatureCard(
                       title: '5. Paws Step Walking',
                       subtitle: 'Passive Sync Ledger: $_mockLiveStepsWalked / $_dailyStepsTargetGoal steps',
@@ -596,8 +575,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-
-                    // FEATURE 6: Paws Tap Coins
                     _buildFeatureCard(
                       title: '6. Paws Tap Coins',
                       subtitle: 'Tap Multiplier Accumulator: $_tapAccumulationTracker / 20 inputs clicked',
@@ -610,8 +587,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Strict Request Placement: Centralized Withdrawal triggering button fixed above ad layout footer
-                    SizedBox(
+                                        SizedBox(
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
@@ -623,13 +599,11 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                         child: const Text('💵 WITHDRAW FUNDS NOW', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14)),
                       ),
                     ),
-                    const SizedBox(height: 16), // Safety Spacer padding prevents Google accidental click flags
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
             ),
-
-            // Strict Request Layout: Fixed single bottom AdMob banner footer housing configuration row
             if (_isDashboardBannerLoaded && _dashboardSingleBottomBanner != null)
               Container(
                 alignment: Alignment.center,
@@ -670,7 +644,6 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   }
 }
 
-// Simple internal helper drawer layout class builder to secure compilation architecture completeness
 class UserHeaderDrawer extends StatelessWidget {
   final String userId;
   final int currentCoins;
