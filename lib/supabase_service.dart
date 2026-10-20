@@ -1,95 +1,58 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-class CashPawsSupabaseService {
-  static final CashPawsSupabaseService _instance = CashPawsSupabaseService._internal();
-  factory CashPawsSupabaseService() => _instance;
-  CashPawsSupabaseService._internal();
-
-  // 🌟 FIXED LAYER: Correctly defined global client instance
-  final SupabaseClient _client = Supabase.instance.client;
-
-  // Fetch a user's real-time live Pawcoin balance from the secure cloud ledger table
-  Future<int> getUserBalance(String userId) async {
-    try {
-      final data = await _client
-          .from('user_profiles')
-          .select('pawcoins_balance')
-          .eq('user_id', userId)
-          .single();
-      
-      return data['pawcoins_balance'] as int? ?? 0;
-    } catch (e) {
-      return 0; // Return a safe fallback value if connection buffers
+  // --- Supabase Transaction Execution Core Handler ---
+  Future<void> _processWithdrawal() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedMethod == null || _selectedTier == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select both a payout method and cash tier.')),
+      );
+      return;
     }
-  }
 
-  // Atomically update local coins state engine and insert an audit row into the database
-  Future<bool> creditUserPoints({
-    required String userId,
-    required int pointsToCredit,
-    required String rewardSource,
-  }) async {
-    try {
-      final currentBalance = await getUserBalance(userId);
-      final newBalance = currentBalance + pointsToCredit;
-
-      await _client
-          .from('user_profiles')
-          .update({'pawcoins_balance': newBalance})
-          .eq('user_id', userId);
-
-      await _client.from('points_ledger').insert({
-        'user_id': userId,
-        'amount_changed': pointsToCredit,
-        'activity_type': rewardSource,
-        'created_at': DateTime.now().toIso8601String(),
-      });
-
-      return true;
-    } catch (e) {
-      return false;
+    final int requiredCoins = _selectedTier! * 1000; // 1,000 pawcoins = $1 USD
+    if (_currentPawcoins < requiredCoins) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Insufficient balance. You need $requiredCoins Pawcoins for this tier.')),
+      );
+      return;
     }
-  }
 
-  // Submit a dynamic withdrawal request directly to the pending admin ledger table
-  Future<Map<String, dynamic>> processWithdrawalRequest({
-    required String userId,
-    required String payoutMethod, // 'PayPal', 'GCash', 'Maya', or 'UNO Wallet'
-    required String payoutAccount, // Phone number or Email address
-    required double usdAmount, // 10, 20, 50, 100, 500, 1000 tiers
-  }) async {
+    setState(() => _isSubmitting = true);
+
     try {
-      final int requiredCoins = (usdAmount * 10000).toInt();
-      final int currentBalance = await getUserBalance(userId);
+      final user = _supabase.auth.currentUser;
+      if (user == null) throw Exception('No authorized session found.');
 
-      if (currentBalance < requiredCoins) {
-        return {'success': false, 'message': '❌ Insufficient Pawcoins balance.'};
-      }
-
-      final int updatedBalance = currentBalance - requiredCoins;
-
-      await _client
-          .from('user_profiles')
-          .update({'pawcoins_balance': updatedBalance})
-          .eq('user_id', userId);
-
-      await _client.from('withdrawal_requests').insert({
-        'user_id': userId,
-        'method': payoutMethod,
-        'account_destination': payoutAccount,
-        'usd_amount': usdAmount,
+      // 1. Write transactional audit entry into cloud withdrawals ledger
+      await _supabase.from('withdrawals').insert({
+        'user_id': user.id, // Linked back to user_profiles table primary key
+        'payment_method': _selectedMethod,
+        'tier_amount_usd': _selectedTier,
         'coins_deducted': requiredCoins,
-        'status': 'PENDING',
+        'account_number': _accountNumberController.text.trim(),
+        'account_name': _accountNameController.text.trim(),
+        'status': 'pending',
         'created_at': DateTime.now().toIso8601String(),
       });
 
-      return {
-        'success': true,
-        'message': '🎉 Withdrawal submitted! Processed on the upcoming Friday batch.',
-        'new_balance': updatedBalance
-      };
+      // 2. Safely deduct points from user profile based on target column user_id
+      final int updatedCoinTotal = _currentPawcoins - requiredCoins;
+      await _supabase.from('user_profiles').update({
+        'pawcoins': updatedCoinTotal,
+      }).eq('user_id', user.id); // Optimized for existing user_id table definitions
+
+      _showSuccessDialog(_selectedTier!, _selectedMethod!);
+
+      setState(() {
+        _currentPawcoins = updatedCoinTotal;
+        _selectedTier = null;
+        _accountNumberController.clear();
+        _accountNameController.clear();
+      });
     } catch (e) {
-      return {'success': false, 'message': '⚠️ Cloud connection error. Please try again.'};
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Transaction failed: ${e.toString()}')),
+      );
+    } finally {
+      setState(() => _isSubmitting = false);
     }
   }
-}
