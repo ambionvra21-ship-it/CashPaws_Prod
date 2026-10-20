@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'theme.dart';
 import 'payout_screen.dart';
-import 'home_tasks_panel.dart'; // Safely imported from your flat lib directory structure
+import 'home_tasks_panel.dart';
 
 class CashPawsHomeScreen extends StatefulWidget {
   final String userId;
@@ -22,21 +22,18 @@ class CashPawsHomeScreen extends StatefulWidget {
 class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   int _totalPawCoins = 0;
   
-  // Mining Timer Controls
   Timer? _miningTimer;
   Duration _miningDurationRemaining = const Duration(hours: 3);
   bool _isMiningActive = false;
   bool _canClaimMiningCoins = false;
 
-  // Animal Growth State Engine Tracker Variables
   int _petGrowthPoints = 0;
   String _petStage = 'Kitten/Baby';
-  String _petType = 'Cat'; // Can alternate dynamically between Cat, Dog, Monkey, etc.
+  String _petType = 'Cat';
 
-  // AdMob Infrastructure Handlers
   RewardedAd? _homeRewardedAd;
   bool _isAdLoading = false;
-  final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917'; // Test ID
+  final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
   @override
   void initState() {
@@ -87,7 +84,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
   void _updateCoinsFromTasks(int earnedAmount) {
     setState(() {
       _totalPawCoins += earnedAmount;
-      _petGrowthPoints += (earnedAmount ~/ 2); // Pets grow passively as users earn coins
+      _petGrowthPoints += (earnedAmount ~/ 2);
       _evaluatePetEvolutionStage();
     });
   }
@@ -123,7 +120,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
         setState(() {
           _totalPawCoins += 150;
           _canClaimMiningCoins = false;
-          _petGrowthPoints += 50; // Extra evolutionary growth points award bump
+          _petGrowthPoints += 50;
           _evaluatePetEvolutionStage();
         });
         _loadRewardedAdCache();
@@ -289,7 +286,7 @@ class _CashPawsHomeScreenState extends State<CashPawsHomeScreen> {
                       ),
                     ] else ...[
                       ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[800], minimumSize: const Size(double.infinity, 44)),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.grey, minimumSize: const Size(double.infinity, 44)),
                         onPressed: _startMiningSession,
                         child: const Text('START 3-HOUR MINING SESSION', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                       ),
