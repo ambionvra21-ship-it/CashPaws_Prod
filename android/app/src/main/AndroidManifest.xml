@@ -1,22 +1,11 @@
 <manifest xmlns:android="http://android.com">
-    <application
-        android:label="CashPaws"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+    <application ...>
         
-        <!-- !! ADD THIS METADATA BLOCK FOR ADMOB !! -->
-        <!-- This is the official Google Test App ID. Swap with your real AdMob App ID for production -->
+        <!-- Google Mobile Ads App ID Metadata Configuration Tag -->
+        <!-- This is a verified Google AdMob global developer test ID string -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~3347511713"/>
             
-        <activity
-            android:name=".MainActivity"
-            ... >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
     </application>
 </manifest>
