@@ -27,15 +27,12 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
   int _coins = 0;
   bool _loading = false;
 
-  // Monetization Layer Elements
   BannerAd? _topBannerAd;
   BannerAd? _bottomBannerAd;
   bool _isTopBannerLoaded = false;
   bool _isBottomBannerLoaded = false;
 
   final List<double> _tiers = const [10.0, 20.0, 50.0, 100.0, 500.0, 1000.0];
-  
-  // Official Google AdMob Test Banner Unit ID to bypass device authorization blocks
   final String _testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
   @override
@@ -54,7 +51,6 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
   }
 
   void _initializeSafeBanners() {
-    // Top Banner Config
     _topBannerAd = BannerAd(
       adUnitId: _testBannerAdUnitId,
       request: const AdRequest(),
@@ -63,12 +59,11 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
         onAdLoaded: (ad) => setState(() => _isTopBannerLoaded = true),
         onAdFailedToLoad: (ad, err) {
           ad.dispose();
-          debugPrint('Top Banner failed to render silently: $err');
+          debugPrint('Top Payout Banner failed to load silently: $err');
         },
       ),
     )..load();
 
-    // Bottom Banner Config
     _bottomBannerAd = BannerAd(
       adUnitId: _testBannerAdUnitId,
       request: const AdRequest(),
@@ -77,7 +72,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
         onAdLoaded: (ad) => setState(() => _isBottomBannerLoaded = true),
         onAdFailedToLoad: (ad, err) {
           ad.dispose();
-          debugPrint('Bottom Banner failed to render silently: $err');
+          debugPrint('Bottom Payout Banner failed to load silently: $err');
         },
       ),
     )..load();
@@ -89,6 +84,7 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⚠️ Enter account details.')));
       return;
     }
+    // 1,000 coins = $1 base conversion ratio calculation mapping
     final int requiredCoins = (_tier * 1000).toInt(); 
     if (_coins < requiredCoins) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Insufficient balance.')));
@@ -138,13 +134,12 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Tactical Injection: Top Banner Ad Slot Container
             if (_isTopBannerLoaded && _topBannerAd != null)
               Container(
                 alignment: Alignment.center,
                 width: _topBannerAd!.size.width.toDouble(),
                 height: _topBannerAd!.size.height.toDouble(),
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.only(bottom: 4),
                 child: AdWidget(ad: _topBannerAd!),
               ),
 
@@ -217,7 +212,10 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: CashPawsColors.neonGreen, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: CashPawsColors.neonGreen,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
                         onPressed: _loading ? null : _handleWithdrawalClick,
                         child: Text(_loading ? 'SYNCING...' : 'CONFIRM WITHDRAWAL', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                       ),
@@ -227,12 +225,11 @@ class _CashPawsPayoutScreenState extends State<CashPawsPayoutScreen> {
               ),
             ),
 
-            // Tactical Injection: Bottom Banner Ad Slot Container
             if (_isBottomBannerLoaded && _bottomBannerAd != null)
               Container(
                 alignment: Alignment.center,
                 width: _bottomBannerAd!.size.width.toDouble(),
-                height: _bottomBannerAd!.size.height.toDouble(),
+                height: _bottomAdMobBanner!.size.height.toDouble(), // Matches height dynamically
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: AdWidget(ad: _bottomBannerAd!),
               ),
