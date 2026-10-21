@@ -8,23 +8,28 @@ import 'supabase_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  final admob = AdMobService();
-  final supabase = SupabaseService();
+  final admobInstance = AdMobService();
+  final supabaseInstance = SupabaseService();
   
-  await admob.initializeAdMob();
+  await admobInstance.initializeAdMob();
   try { 
-    await supabase.initializeSupabase(); 
+    await supabaseInstance.initializeSupabase(); 
   } catch (e) { 
     debugPrint("Supabase entry deferred until production keys are filled."); 
   }
 
-  runApp(CashPawsApp(admob: admob, supabase: supabase));
+  runApp(CashPawsApp(admob: admobInstance, supabase: supabaseInstance));
 }
 
 class CashPawsApp extends StatelessWidget {
   final AdMobService admob;
   final SupabaseService supabase;
-  const CashPawsApp({super.key, required this.admob, required this.supabase});
+  
+  const CashPawsApp({
+    super.key, 
+    required this.admob, 
+    required this.supabase,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +47,12 @@ class CashPawsApp extends StatelessWidget {
 class DashboardShell extends StatefulWidget {
   final AdMobService admob;
   final SupabaseService supabase;
-  const DashboardShell({super.key, required this.admob, required this.supabase});
+  
+  const DashboardShell({
+    super.key, 
+    required this.admob, 
+    required this.supabase,
+  });
 
   @override
   State<DashboardShell> createState() => _DashboardShellState();
@@ -269,7 +279,8 @@ class _DashboardShellState extends State<DashboardShell> {
       ),
     );
   }
-  Widget _buildGlassHUDEngine() {
+
+    Widget _buildGlassHUDEngine() {
     return IntrinsicHeight(
       child: Row(
         children: [
