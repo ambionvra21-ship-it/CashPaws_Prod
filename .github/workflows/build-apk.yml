@@ -1,13 +1,9 @@
 name: Build APK
 
 on:
-  # Allows triggering directly from your app button via API Webhook
   repository_dispatch:
     types: [build-apk]
-    
-  # Keeps manual trigger option inside the GitHub web interface active
   workflow_dispatch:
-
   push:
     branches: [main]
 
@@ -29,12 +25,27 @@ jobs:
         with:
           flutter-version: '3.27.4'
           channel: 'stable'
-          cache: true
+          cache: false
 
-      - name: Create project workspace files
+      # STEP FIX: Run initialization layout generation first so it cannot overwrite your files
+      - name: Scaffold Base Android Project Wrapper Structure
         run: |
+          mkdir -p backup_src
+          [ -f lib/main.dart ] && cp lib/main.dart backup_src/main.dart || true
+          [ -f pubspec.yaml ] && cp pubspec.yaml backup_src/pubspec.yaml || true
+          
           flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
           rm -rf test
+          
+          [ -f backup_src/main.dart ] && cp backup_src/main.dart lib/main.dart || true
+          [ -f backup_src/pubspec.yaml ] && cp backup_src/pubspec.yaml pubspec.yaml || true
+          rm -rf backup_src
+
+      - name: Purge Obsolete Multi-File Workspace Cross-Links
+        run: |
+          rm -f lib/admob_service.dart
+          rm -f lib/supabase_service.dart
+          flutter clean
 
       - name: Force Gradle and AGP Version Upgrades
         run: |
@@ -51,12 +62,12 @@ jobs:
             python3 tools/configure_android.py
           fi
 
-      - name: Resolve project dependencies
+      - name: Resolve project dependencies cleanly
         run: flutter pub get
 
       - name: Compile Release Android Package (APK)
         run: flutter build apk --release
-
+        
       - name: Upload compiled APK Artifact to GitHub
         uses: actions/upload-artifact@v4
         with:
