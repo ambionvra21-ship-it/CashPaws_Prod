@@ -3,7 +3,6 @@ description: "A new Flutter project."
 publish_to: 'none'
 version: 1.0.0+1
 
-# Enforces precise SDK bounds so the automated pipeline compiles without failing
 environment:
   sdk: '^3.6.0'
 
@@ -11,8 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
-  glassmorphism: ^3.0.0
-  gradient_borders: ^1.0.0
   http: ^1.1.0
   google_mobile_ads: ^5.1.0
   supabase_flutter: ^2.6.0
