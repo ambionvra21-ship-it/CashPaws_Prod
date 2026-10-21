@@ -1,14 +1,12 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:glassmorphism/glassmorphism.dart';
-import 'package:gradient_borders/box_borders/gradient_box_border';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // =========================================================================
-// 1. EMBEDDED SINGLE-SOURCE BACKGROUND SERVICE MODULES
+// 1. PRODUCTION ADMOB INTEGRATION LAYER
 // =========================================================================
-
 class AdMobService {
   RewardedAd? _rewardedAd;
   bool isAdLoading = false;
@@ -75,6 +73,9 @@ class AdMobService {
   }
 }
 
+// =========================================================================
+// 2. PRODUCTION SUPABASE AUTHENTICATION MONITORING LAYER
+// =========================================================================
 class SupabaseService {
   final String supabaseUrl = "https://supabase.co";
   final String supabaseAnonKey = "YOUR_SUPABASE_ANON_KEY";
@@ -126,10 +127,10 @@ class SupabaseService {
 }
 
 // =========================================================================
-// 2. UNIFIED APPLICATION ROOT RUNNER
+// 3. APPLICATION INITIALIZATION ROOT
 // =========================================================================
-
 void main() async {
+  // Guarantees binary channels are bound cleanly inside headless environments
   WidgetsFlutterBinding.ensureInitialized();
   
   final admobInstance = AdMobService();
@@ -169,9 +170,8 @@ class CashPawsApp extends StatelessWidget {
 }
 
 // =========================================================================
-// 3. DASHBOARD SHELL STATEFUL FRAMEWORK
+// 4. MAIN INTERACTIVE LIFECYCLE CONTROLLER
 // =========================================================================
-
 class DashboardShell extends StatefulWidget {
   final AdMobService admob;
   final SupabaseService supabase;
@@ -373,7 +373,6 @@ class _DashboardShellState extends State<DashboardShell> {
           ],
         ),
         Container(
-          // Fixed: Changed invalid formatting parameter 'py: 4' to 'vertical: 4'
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(20)),
           child: Row(
@@ -409,7 +408,30 @@ class _DashboardShellState extends State<DashboardShell> {
     );
   }
 
-    Widget _buildGlassHUDEngine() {
+    // =========================================================================
+  // 5. PRODUCTION SAFE FROST CONTAINER (ZERO EXTERNAL UI PLUGINS)
+  // =========================================================================
+  Widget _buildSafeCard({required Widget child, required Border border}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(16),
+            border: border,
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassHUDEngine() {
+    final defaultBorder = Border.all(color: Colors.white.withOpacity(0.08), width: 1);
+    final highlightBorder = Border.all(color: const Color(0xFF3A88E9), width: 1.5);
+
     return IntrinsicHeight(
       child: Row(
         children: [
@@ -417,29 +439,15 @@ class _DashboardShellState extends State<DashboardShell> {
             child: Column(
               children: [
                 Expanded(
-                  child: GlassmorphicContainer(
-                    width: double.infinity,
-                    height: double.infinity,
-                    borderRadius: 16,
-                    blur: 15,
-                    alignment: Alignment.center,
-                    border: 1,
-                    linearGradient: LinearGradient(colors: [Colors.white.withOpacity(0.04), Colors.white.withOpacity(0.01)]),
-                    borderGradient: LinearGradient(colors: [Colors.white.withOpacity(0.08), Colors.white.withOpacity(0.02)]),
+                  child: _buildSafeCard(
+                    border: defaultBorder,
                     child: _buildMenuTileContent("Spin The Wheel", "TRY YOUR LUCK!", const Color(0xFFE99E3A), Icons.casino, () {}),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Expanded(
-                  child: GlassmorphicContainer(
-                    width: double.infinity,
-                    height: double.infinity,
-                    borderRadius: 16,
-                    blur: 15,
-                    alignment: Alignment.center,
-                    border: 1,
-                    linearGradient: LinearGradient(colors: [Colors.white.withOpacity(0.04), Colors.white.withOpacity(0.01)]),
-                    borderGradient: LinearGradient(colors: [Colors.white.withOpacity(0.08), Colors.white.withOpacity(0.02)]),
+                  child: _buildSafeCard(
+                    border: defaultBorder,
                     child: _buildMenuTileContent("Tap Coins!", "TAP TO EARN!", const Color(0xFFFFD700), Icons.touch_app, () {}),
                   ),
                 ),
@@ -449,64 +457,53 @@ class _DashboardShellState extends State<DashboardShell> {
           const SizedBox(width: 12),
           Expanded(
             flex: 2,
-            child: GlassmorphicContainer(
-              width: double.infinity,
-              height: 300,
-              borderRadius: 24,
-              blur: 20,
-              alignment: Alignment.center,
-              border: 1.5,
-              linearGradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.white.withOpacity(0.06), Colors.white.withOpacity(0.01)],
-              ),
-              borderGradient: const LinearGradient(colors: [Color(0xFF3A88E9), Color(0xFFE99E3A)]),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Mini-Mining", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: GradientBoxBorder(
-                        gradient: const LinearGradient(colors: [Colors.cyan, Color(0xFF3A88E9), Colors.transparent]),
-                        width: 3,
+            child: _buildSafeCard(
+              border: highlightBorder,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Mini-Mining", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF3A88E9), width: 2),
                       ),
+                      child: const Center(child: Icon(Icons.pets, size: 48, color: Color(0xFFC0D6E4))),
                     ),
-                    child: const Center(child: Icon(Icons.pets, size: 54, color: Color(0xFFC0D6E4))),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text("Mining Active:", style: TextStyle(color: Colors.grey, fontSize: 11)),
-                  Text(_getFormattedTime(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: _canCollect ? () {
-                      if (mounted) {
-                        setState(() {
-                          _userCpPoints += 500;
-                          _timeLeft = const Duration(hours: 4, minutes: 0, seconds: 0);
-                          _canCollect = false;
-                          _startMiningTimer();
-                        });
-                      }
-                    } : null,
-                    child: Opacity(
-                      opacity: _canCollect ? 1.0 : 0.4,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, py: 6),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20), 
-                          gradient: const LinearGradient(colors: [Color(0xFF2B5876), Color(0xFF4E4376)]),
+                    const SizedBox(height: 12),
+                    const Text("Mining Active:", style: TextStyle(color: Colors.grey, fontSize: 11)),
+                    Text(_getFormattedTime(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: _canCollect ? () {
+                        if (mounted) {
+                          setState(() {
+                            _userCpPoints += 500;
+                            _timeLeft = const Duration(hours: 4, minutes: 0, seconds: 0);
+                            _canCollect = false;
+                            _startMiningTimer();
+                          });
+                        }
+                      } : null,
+                      child: Opacity(
+                        opacity: _canCollect ? 1.0 : 0.4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, py: 6),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20), 
+                            gradient: const LinearGradient(colors: [Color(0xFF2B5876), Color(0xFF4E4376)]),
+                          ),
+                          child: Text(_canCollect ? "CLAIM NOW" : "COLLECT", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                         ),
-                        child: Text(_canCollect ? "CLAIM NOW" : "COLLECT", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                       ),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
             ),
           ),
@@ -515,15 +512,8 @@ class _DashboardShellState extends State<DashboardShell> {
             child: Column(
               children: [
                 Expanded(
-                  child: GlassmorphicContainer(
-                    width: double.infinity,
-                    height: double.infinity,
-                    borderRadius: 16,
-                    blur: 15,
-                    alignment: Alignment.center,
-                    border: 1,
-                    linearGradient: LinearGradient(colors: [Colors.white.withOpacity(0.04), Colors.white.withOpacity(0.01)]),
-                    borderGradient: LinearGradient(colors: [Colors.white.withOpacity(0.08), Colors.white.withOpacity(0.02)]),
+                  child: _buildSafeCard(
+                    border: defaultBorder,
                     child: _buildMenuTileContent("Walking Rewards", "$_stepCount / 10,000", const Color(0xFF3A88E9), Icons.directions_walk, () {
                       if (mounted) {
                         setState(() { if (_stepCount < 10000) _stepCount += 150; });
@@ -533,15 +523,8 @@ class _DashboardShellState extends State<DashboardShell> {
                 ),
                 const SizedBox(height: 12),
                 Expanded(
-                  child: GlassmorphicContainer(
-                    width: double.infinity,
-                    height: double.infinity,
-                    borderRadius: 16,
-                    blur: 15,
-                    alignment: Alignment.center,
-                    border: 1,
-                    linearGradient: LinearGradient(colors: [Colors.white.withOpacity(0.04), Colors.white.withOpacity(0.01)]),
-                    borderGradient: LinearGradient(colors: [Colors.white.withOpacity(0.08), Colors.white.withOpacity(0.02)]),
+                  child: _buildSafeCard(
+                    border: defaultBorder,
                     child: _buildMenuTileContent("Watch Ads", "WATCH & EARN CP", Colors.redAccent, Icons.play_circle_filled, _triggerLiveVideoRewardAd),
                   ),
                 ),
@@ -574,6 +557,9 @@ class _DashboardShellState extends State<DashboardShell> {
   }
 }
 
+// =========================================================================
+// 6. AD BANNER FOOTER OVERLAY
+// =========================================================================
 class BottomBannerAd extends StatelessWidget {
   const BottomBannerAd({super.key});
 
@@ -581,7 +567,6 @@ class BottomBannerAd extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF070A0F),
-      // Fixed: Cleaned invalid layout parameters in the bottom banner padding tracking properties
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
