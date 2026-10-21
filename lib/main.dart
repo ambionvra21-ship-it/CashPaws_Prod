@@ -173,7 +173,7 @@ class PlaceholderView extends StatelessWidget {
 }
 
 // ==========================================
-// BATCH 2 - PART A: DASHBOARD VIEW CORE
+// SECTION 2 - PART A: PRESENTATION HEADER
 // ==========================================
 
 class HomeDashboardView extends StatelessWidget {
