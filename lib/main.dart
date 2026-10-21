@@ -37,7 +37,6 @@ class MainNavigationShell extends StatefulWidget {
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
   
-  // Persistent Core State Variables
   int _totalCoins = 15480;
   int _stepsWalked = 4500;
   int _spinsRemaining = 3;
@@ -49,7 +48,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     _loadPersistedMetrics();
   }
 
-  // --- LOCAL HARDWARE PERSISTENCE HOOKS ---
   Future<void> _loadPersistedMetrics() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -66,7 +64,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     if (value is bool) await prefs.setBool(key, value);
   }
 
-  // --- ENGINE TRANSACTION LOGIC ---
   void _awardCoins(int amount, String source) {
     setState(() {
       _totalCoins += amount;
@@ -89,7 +86,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          TextButton(
+            onPressed: () => Navigator.pop(context), 
+            child: const Text('OK'),
+          ),
         ],
       ),
     );
@@ -173,7 +173,7 @@ class PlaceholderView extends StatelessWidget {
 }
 
 // ==========================================
-// PHASE 2: HOME DASHBOARD PRESENTATION LAYER
+// BATCH 2: HOME DASHBOARD PRESENTATION LAYER
 // ==========================================
 
 class HomeDashboardView extends StatelessWidget {
@@ -215,8 +215,8 @@ class HomeDashboardView extends StatelessWidget {
           icon: const Icon(Icons.menu, color: Colors.black87),
           onPressed: () {},
         ),
-        title: const Row(
-          children: [
+        title: Row(
+          children: const [
             Icon(Icons.pets, color: Colors.orange, size: 24),
             SizedBox(width: 8),
             Text(
@@ -328,7 +328,6 @@ class HomeDashboardView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Bottom Section Placeholder Hooks for Phase 3
             _buildWithdrawalCardSection(),
             const SizedBox(height: 16),
             _buildAdNetworkTaskSection(),
@@ -389,11 +388,16 @@ class HomeDashboardView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
-              children: [
+            Row(
+              children: const [
                 Icon(Icons.directions_walk, color: Colors.blue, size: 16),
                 SizedBox(width: 4),
-                Expanded(child: Text('PEDOMETER', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10))),
+                Expanded(
+                  child: Text(
+                    'PEDOMETER', 
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -415,8 +419,8 @@ class HomeDashboardView extends StatelessWidget {
     );
   }
 
-  // ==========================================
-  // PHASE 3: WITHDRAWAL GATEWAYS & MONETIZATION
+    // ==========================================
+  // BATCH 3: WITHDRAWAL GATEWAYS & MONETIZATION
   // ==========================================
 
   Widget _buildWithdrawalCardSection() {
@@ -545,15 +549,14 @@ class HomeDashboardView extends StatelessWidget {
                   ),
                   Text(
                     reward,
-                    style: TextStyle(color: Colors.green.shade800, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
-            )
-          ],
-        ),
-      ),
+                ),
+              ],
+            ),
+          ),
     );
   }
-
 
