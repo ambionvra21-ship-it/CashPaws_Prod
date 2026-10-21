@@ -1,12 +1,8 @@
-name: cashpaws
-description: "A new Flutter rewards mobile application."
-publish_to: 'none'
-
-# Add this exact block below your description to fix the pipeline:
-environment:
-  sdk: '^3.6.0'
-
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.3.5
+  cupertino_icons: ^1.0.6
+  # For the frosted-glass overlay effect
+  glassmorphism: ^3.0.0 
+  # For smooth gradient borders and glows
+  gradient_borders: ^1.0.0
