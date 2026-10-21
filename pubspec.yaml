@@ -1,3 +1,11 @@
+name: cashpaws
+description: "A gamified virtual pet reward earning application for CashPaws."
+publish_to: 'none'
+
+# FIXED: Added required standard engine environment upper and lower constraints
+environment:
+  sdk: '^3.6.0'
+
 dependencies:
   flutter:
     sdk: flutter
@@ -7,3 +15,11 @@ dependencies:
 
   # Monetization, Banners, and Rewarded Video Ads Handlers
   google_mobile_ads: ^5.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
