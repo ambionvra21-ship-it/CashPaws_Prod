@@ -1,0 +1,9 @@
+buildTypes {
+    release {
+        // Find your existing release block and add these two lines if they are missing:
+        minifyEnabled true
+        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        
+        signingConfig signingConfigs.debug // Keep your existing signing setup
+    }
+}
