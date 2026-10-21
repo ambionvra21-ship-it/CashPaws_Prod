@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'supabase_flutter/supabase_flutter.dart';
+// Fixed: Correct package structure registration 
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseService {
-  // Replace these with your actual cloud keys pulled directly from your Supabase dashboard
   final String supabaseUrl = "https://supabase.co";
   final String supabaseAnonKey = "YOUR_SUPABASE_ANON_KEY";
 
@@ -13,7 +13,6 @@ class SupabaseService {
     );
   }
 
-  // Registers a new user and triggers an automatic registration tracking email loop
   Future<String?> registerUserEmail({required String email, required String password}) async {
     try {
       final AuthResponse response = await Supabase.instance.client.auth.signUp(
@@ -32,7 +31,6 @@ class SupabaseService {
     }
   }
 
-  // Logs a user in and synchronizes their active app currency values to the cloud database
   Future<String?> loginUserEmail({required String email, required String password}) async {
     try {
       final AuthResponse response = await Supabase.instance.client.auth.signInWithPassword(
@@ -51,7 +49,6 @@ class SupabaseService {
     }
   }
 
-  // Logs out the active app user profile session cleanly
   Future<void> logoutUser() async {
     await Supabase.instance.client.auth.signOut();
   }
