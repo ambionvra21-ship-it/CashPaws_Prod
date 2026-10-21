@@ -13,7 +13,7 @@ class SpinWheelScreen extends StatefulWidget {
 class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProviderStateMixin {
   final SupabaseClient _supabase = Supabase.instance.client;
   
-  // Animation Rotation Controllers
+  // Animation Rotation Controls
   late AnimationController _animationController;
   late Animation<double> _animation;
   double _currentRotationAngle = 0.0;
@@ -25,7 +25,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
   int _currentCoins = 0;
   bool _isLoading = true;
 
-  // FIXED: Explicitly initialized reward layout matrix array fractions
+  // Completed reward values mapping the 8 wheel sections explicitly
   final List<int> _wheelRewards =;
 
   // Monetization Mobile Framework Variables
@@ -43,7 +43,6 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
       vsync: this,
       duration: const Duration(seconds: 4),
     );
-    
     _animation = CurvedAnimation(parent: _animationController, curve: Curves.decelerate);
   }
 
@@ -56,7 +55,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
         onAdLoaded: (_) => setState(() => _isBannerLoaded = true),
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
-          debugPrint('AdMob configuration break on route: $error');
+          debugPrint('AdMob Banner error on roulette route: $error');
         },
       ),
     )..load();
@@ -81,7 +80,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
         });
       }
     } catch (e) {
-      debugPrint('User telemetry load failure: $e');
+      debugPrint('User telemetry failed to load: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -97,8 +96,9 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
     final random = Random();
     final int targetWedgeIndex = random.nextInt(_wheelRewards.length);
     
+    // Degrees calculation setup (360 degrees / 8 structural partitions = 45 degrees per wedge)
     const double wedgeAngle = 360 / 8;
-    final double targetAngle = (360 * 4) + (targetWedgeIndex * wedgeAngle);
+    final double targetAngle = (360 * 4) + (targetWedgeIndex * wedgeAngle); // 4 full prerequisite cycles
 
     _animation = Tween<double>(
       begin: _currentRotationAngle % 360,
@@ -131,7 +131,6 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
           _adsWatchedToday = updatedSpins;
           _isSpinning = false;
         });
-
         _showRewardModal(coinsWon);
       }
     } catch (e) {
@@ -146,9 +145,10 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Wheel Spin Outcome', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: Text(
-          amount > 0 ? '🎉 Amazing! You unlocked +$amount Pawcoins directly to your balance.' : '💨 Unlucky roll! Try again next time!',
+          amount > 0 ? '🎉 Amazing! You unlocked +$amount Pawcoins directly to your system balance.' : '💨 Unlucky roll! Try again next time!',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
@@ -161,7 +161,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
     );
   }
 
-  // --- 2. Screen Visual Layout Build Tree Hierarchy ---
+    // --- 2. Screen Visual Layout Engine Hierarchy ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -181,6 +181,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       children: [
+                        // Telemetry Statistics Display
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -190,6 +191,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
                         ),
                         const SizedBox(height: 60),
 
+                        // Interactive Simulated Wheel Layout Node Tree
                         Stack(
                           alignment: Alignment.center,
                           children: [
@@ -211,11 +213,13 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
                                 child: CustomPaint(painter: WheelWedgePainter(_wheelRewards)),
                               ),
                             ),
+                            // Central Selector Pin Pointer Needle
                             const Icon(Icons.navigation_rounded, size: 48, color: Colors.orangeAccent),
                           ],
                         ),
                         const SizedBox(height: 60),
 
+                        // Action Execution Launcher Button Panel
                         ElevatedButton(
                           onPressed: (_isSpinning || _adsWatchedToday >= _maxDailySpins) ? null : _spinTheWheel,
                           style: ElevatedButton.styleFrom(
@@ -234,6 +238,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
                   ),
                 ),
                 
+                // Fixed Bottom AdMob Container Attachment
                 if (_isBannerLoaded && _bannerAd != null)
                   Container(
                     alignment: Alignment.center,
@@ -254,7 +259,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
   }
 }
 
-// --- 3. FIXED: Compilation-Safe Custom Painter Vector Layer Engine ---
+// --- 3. Vector Canvas implementation completely decoupled from dynamic modifiers ---
 class WheelWedgePainter extends CustomPainter {
   final List<int> rewards;
   WheelWedgePainter(this.rewards);
@@ -269,7 +274,6 @@ class WheelWedgePainter extends CustomPainter {
     final radius = size.width / 2;
 
     for (int i = 0; i < rewards.length; i++) {
-      // FIXED: Removed runtime assignment error by explicitly handling color states safely
       paint.color = (i % 2 == 0) ? const Color(0xFF232329) : const Color(0xFF2D2D35);
       canvas.drawArc(Rect.fromCircle(center: center, radius: radius), i * sweepAngle, sweepAngle, true, paint);
     }
