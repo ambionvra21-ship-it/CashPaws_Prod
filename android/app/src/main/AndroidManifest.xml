@@ -1,2 +1,10 @@
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+<manifest xmlns:android="http://android.com">
+    <application ...>
+        
+        <!-- Google AdMob Application ID Mapping -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/> <!-- AdMob Test App ID -->
+
+    </application>
+</manifest>
