@@ -130,7 +130,6 @@ class SupabaseService {
 // 3. APPLICATION INITIALIZATION ROOT
 // =========================================================================
 void main() async {
-  // Guarantees binary channels are bound cleanly inside headless environments
   WidgetsFlutterBinding.ensureInitialized();
   
   final admobInstance = AdMobService();
