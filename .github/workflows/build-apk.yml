@@ -27,40 +27,22 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # STEP FIX: Run initialization layout generation first so it cannot overwrite your files
       - name: Scaffold Base Android Project Wrapper Structure
         run: |
           mkdir -p backup_src
           [ -f lib/main.dart ] && cp lib/main.dart backup_src/main.dart || true
           [ -f pubspec.yaml ] && cp pubspec.yaml backup_src/pubspec.yaml || true
+          [ -f android/app/build.gradle ] && cp android/app/build.gradle backup_src/build.gradle || true
+          [ -f android/app/src/main/AndroidManifest.xml ] && cp android/app/src/main/AndroidManifest.xml backup_src/AndroidManifest.xml || true
           
           flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
           rm -rf test
           
           [ -f backup_src/main.dart ] && cp backup_src/main.dart lib/main.dart || true
           [ -f backup_src/pubspec.yaml ] && cp backup_src/pubspec.yaml pubspec.yaml || true
+          [ -f backup_src/build.gradle ] && cp backup_src/build.gradle android/app/build.gradle || true
+          [ -f backup_src/AndroidManifest.xml ] && cp backup_src/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
           rm -rf backup_src
-
-      - name: Purge Obsolete Multi-File Workspace Cross-Links
-        run: |
-          rm -f lib/admob_service.dart
-          rm -f lib/supabase_service.dart
-          flutter clean
-
-      - name: Force Gradle and AGP Version Upgrades
-        run: |
-          if [ -f android/settings.gradle ]; then
-            sed -i 's/"com.android.application" version "[^"]*"/"com.android.application" version "8.1.4"/g' android/settings.gradle
-          fi
-          if [ -f android/build.gradle ]; then
-            sed -i 's/gradle:[0-9.]*/gradle:8.1.4/g' android/build.gradle
-          fi
-
-      - name: Apply CashPaws customization scripts
-        run: |
-          if [ -f tools/configure_android.py ]; then
-            python3 tools/configure_android.py
-          fi
 
       - name: Resolve project dependencies cleanly
         run: flutter pub get
