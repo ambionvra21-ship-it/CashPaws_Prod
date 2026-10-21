@@ -61,7 +61,7 @@ class _MiningChestCardState extends State<MiningChestCard> {
         });
       }
     } catch (e) {
-      debugPrint('Mining validation sync missing: $e');
+      debugPrint('Mining validation log lookup skipped: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -91,7 +91,6 @@ class _MiningChestCardState extends State<MiningChestCard> {
 
       final String nowIso = DateTime.now().toIso8601String();
 
-      // Core mining claim trigger execution paths
       await _supabase.from('user_profiles').update({
         'last_chest_mine': nowIso,
       }).eq('user_id', user.id);
@@ -137,7 +136,7 @@ class _MiningChestCardState extends State<MiningChestCard> {
           color: const Color(0xFF1A1A1E),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: !_isMining ? Colors.orangeAccent.withOpacity(0.4) : Colors.grey.withOpacity(0.1),
+            color: !_isMining ? Colors.orangeAccent.withOpacity(0.4) : Colors.white10,
             width: 1,
           ),
         ),
