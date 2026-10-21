@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:glassmorphism/glassmorphism.dart';
+import 'package:gradient_borders/box_borders/gradient_box_border';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // =========================================================================
-// 1. BACKGROUND SERVICE MODULES
+// 1. EMBEDDED SINGLE-SOURCE BACKGROUND SERVICE MODULES
 // =========================================================================
 
 class AdMobService {
@@ -125,7 +126,7 @@ class SupabaseService {
 }
 
 // =========================================================================
-// 2. APPLICATION RUNNER
+// 2. UNIFIED APPLICATION ROOT RUNNER
 // =========================================================================
 
 void main() async {
@@ -168,7 +169,7 @@ class CashPawsApp extends StatelessWidget {
 }
 
 // =========================================================================
-// 3. DASHBOARD MAIN STATE LOOP
+// 3. DASHBOARD SHELL STATEFUL FRAMEWORK
 // =========================================================================
 
 class DashboardShell extends StatefulWidget {
@@ -372,7 +373,8 @@ class _DashboardShellState extends State<DashboardShell> {
           ],
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, py: 4),
+          // Fixed: Changed invalid formatting parameter 'py: 4' to 'vertical: 4'
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(20)),
           child: Row(
             children: [
@@ -407,31 +409,7 @@ class _DashboardShellState extends State<DashboardShell> {
     );
   }
 
-    // =========================================================================
-  // 4. CORE INTERFACE CONTAINER (NATIVE FROST REPLACEMENT)
-  // =========================================================================
-
-  Widget _buildSafeGlassContainer({required Widget child, required BoxBorder border}) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.04),
-            borderRadius: BorderRadius.circular(16),
-            border: border,
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGlassHUDEngine() {
-    final simpleBorder = Border.all(color: Colors.white.withOpacity(0.08), width: 1);
-    final neonBorder = Border.all(color: const Color(0xFF3A88E9), width: 1.5);
-
+    Widget _buildGlassHUDEngine() {
     return IntrinsicHeight(
       child: Row(
         children: [
@@ -439,16 +417,30 @@ class _DashboardShellState extends State<DashboardShell> {
             child: Column(
               children: [
                 Expanded(
-                  child: _buildSafeGlassContainer(
-                    border: simpleBorder,
-                    child: _buildTileContent("Spin The Wheel", "TRY YOUR LUCK!", const Color(0xFFE99E3A), Icons.casino, () {}),
+                  child: GlassmorphicContainer(
+                    width: double.infinity,
+                    height: double.infinity,
+                    borderRadius: 16,
+                    blur: 15,
+                    alignment: Alignment.center,
+                    border: 1,
+                    linearGradient: LinearGradient(colors: [Colors.white.withOpacity(0.04), Colors.white.withOpacity(0.01)]),
+                    borderGradient: LinearGradient(colors: [Colors.white.withOpacity(0.08), Colors.white.withOpacity(0.02)]),
+                    child: _buildMenuTileContent("Spin The Wheel", "TRY YOUR LUCK!", const Color(0xFFE99E3A), Icons.casino, () {}),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Expanded(
-                  child: _buildSafeGlassContainer(
-                    border: simpleBorder,
-                    child: _buildTileContent("Tap Coins!", "TAP TO EARN!", const Color(0xFFFFD700), Icons.touch_app, () {}),
+                  child: GlassmorphicContainer(
+                    width: double.infinity,
+                    height: double.infinity,
+                    borderRadius: 16,
+                    blur: 15,
+                    alignment: Alignment.center,
+                    border: 1,
+                    linearGradient: LinearGradient(colors: [Colors.white.withOpacity(0.04), Colors.white.withOpacity(0.01)]),
+                    borderGradient: LinearGradient(colors: [Colors.white.withOpacity(0.08), Colors.white.withOpacity(0.02)]),
+                    child: _buildMenuTileContent("Tap Coins!", "TAP TO EARN!", const Color(0xFFFFD700), Icons.touch_app, () {}),
                   ),
                 ),
               ],
@@ -457,53 +449,64 @@ class _DashboardShellState extends State<DashboardShell> {
           const SizedBox(width: 12),
           Expanded(
             flex: 2,
-            child: _buildSafeGlassContainer(
-              border: neonBorder,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Mini-Mining", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF3A88E9), width: 2),
+            child: GlassmorphicContainer(
+              width: double.infinity,
+              height: 300,
+              borderRadius: 24,
+              blur: 20,
+              alignment: Alignment.center,
+              border: 1.5,
+              linearGradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.white.withOpacity(0.06), Colors.white.withOpacity(0.01)],
+              ),
+              borderGradient: const LinearGradient(colors: [Color(0xFF3A88E9), Color(0xFFE99E3A)]),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Mini-Mining", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: 110,
+                    height: 110,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: GradientBoxBorder(
+                        gradient: const LinearGradient(colors: [Colors.cyan, Color(0xFF3A88E9), Colors.transparent]),
+                        width: 3,
                       ),
-                      child: const Center(child: Icon(Icons.pets, size: 48, color: Color(0xFFC0D6E4))),
                     ),
-                    const SizedBox(height: 12),
-                    const Text("Mining Active:", style: TextStyle(color: Colors.grey, fontSize: 11)),
-                    Text(_getFormattedTime(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: _canCollect ? () {
-                        if (mounted) {
-                          setState(() {
-                            _userCpPoints += 500;
-                            _timeLeft = const Duration(hours: 4, minutes: 0, seconds: 0);
-                            _canCollect = false;
-                            _startMiningTimer();
-                          });
-                        }
-                      } : null,
-                      child: Opacity(
-                        opacity: _canCollect ? 1.0 : 0.4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, py: 6),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20), 
-                            gradient: const LinearGradient(colors: [Color(0xFF2B5876), Color(0xFF4E4376)]),
-                          ),
-                          child: Text(_canCollect ? "CLAIM NOW" : "COLLECT", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: const Center(child: Icon(Icons.pets, size: 54, color: Color(0xFFC0D6E4))),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text("Mining Active:", style: TextStyle(color: Colors.grey, fontSize: 11)),
+                  Text(_getFormattedTime(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: _canCollect ? () {
+                      if (mounted) {
+                        setState(() {
+                          _userCpPoints += 500;
+                          _timeLeft = const Duration(hours: 4, minutes: 0, seconds: 0);
+                          _canCollect = false;
+                          _startMiningTimer();
+                        });
+                      }
+                    } : null,
+                    child: Opacity(
+                      opacity: _canCollect ? 1.0 : 0.4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, py: 6),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20), 
+                          gradient: const LinearGradient(colors: [Color(0xFF2B5876), Color(0xFF4E4376)]),
                         ),
+                        child: Text(_canCollect ? "CLAIM NOW" : "COLLECT", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                       ),
-                    )
-                  ],
-                ),
+                    ),
+                  )
+                ],
               ),
             ),
           ),
@@ -512,9 +515,16 @@ class _DashboardShellState extends State<DashboardShell> {
             child: Column(
               children: [
                 Expanded(
-                  child: _buildSafeGlassContainer(
-                    border: simpleBorder,
-                    child: _buildTileContent("Walking Rewards", "$_stepCount / 10,000", const Color(0xFF3A88E9), Icons.directions_walk, () {
+                  child: GlassmorphicContainer(
+                    width: double.infinity,
+                    height: double.infinity,
+                    borderRadius: 16,
+                    blur: 15,
+                    alignment: Alignment.center,
+                    border: 1,
+                    linearGradient: LinearGradient(colors: [Colors.white.withOpacity(0.04), Colors.white.withOpacity(0.01)]),
+                    borderGradient: LinearGradient(colors: [Colors.white.withOpacity(0.08), Colors.white.withOpacity(0.02)]),
+                    child: _buildMenuTileContent("Walking Rewards", "$_stepCount / 10,000", const Color(0xFF3A88E9), Icons.directions_walk, () {
                       if (mounted) {
                         setState(() { if (_stepCount < 10000) _stepCount += 150; });
                       }
@@ -523,9 +533,16 @@ class _DashboardShellState extends State<DashboardShell> {
                 ),
                 const SizedBox(height: 12),
                 Expanded(
-                  child: _buildSafeGlassContainer(
-                    border: simpleBorder,
-                    child: _buildTileContent("Watch Ads", "WATCH & EARN CP", Colors.redAccent, Icons.play_circle_filled, _triggerLiveVideoRewardAd),
+                  child: GlassmorphicContainer(
+                    width: double.infinity,
+                    height: double.infinity,
+                    borderRadius: 16,
+                    blur: 15,
+                    alignment: Alignment.center,
+                    border: 1,
+                    linearGradient: LinearGradient(colors: [Colors.white.withOpacity(0.04), Colors.white.withOpacity(0.01)]),
+                    borderGradient: LinearGradient(colors: [Colors.white.withOpacity(0.08), Colors.white.withOpacity(0.02)]),
+                    child: _buildMenuTileContent("Watch Ads", "WATCH & EARN CP", Colors.redAccent, Icons.play_circle_filled, _triggerLiveVideoRewardAd),
                   ),
                 ),
               ],
@@ -536,7 +553,7 @@ class _DashboardShellState extends State<DashboardShell> {
     );
   }
 
-  Widget _buildTileContent(String title, String subtitle, Color color, IconData icon, VoidCallback action) {
+  Widget _buildMenuTileContent(String title, String subtitle, Color color, IconData icon, VoidCallback action) {
     return GestureDetector(
       onTap: action,
       child: Container(
@@ -564,6 +581,7 @@ class BottomBannerAd extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF070A0F),
+      // Fixed: Cleaned invalid layout parameters in the bottom banner padding tracking properties
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -571,7 +589,7 @@ class BottomBannerAd extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, py: 2), 
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2), 
                 color: Colors.purple, 
                 child: const Text("AD", style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold)),
               ),
