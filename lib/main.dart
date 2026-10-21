@@ -7,7 +7,6 @@ void main() {
   runApp(const CashPawsApp());
 }
 
-// Enforces your strict rule: 90% goes to platform profit, 10% to user payout
 class RevenueController {
   static Map<String, double> calculateSplit(double grossAdValueUsd) {
     return {
@@ -17,7 +16,6 @@ class RevenueController {
   }
 }
 
-// State management configuration
 class DashboardState extends ChangeNotifier {
   Duration _timeLeft = const Duration(hours: 2, minutes: 18, seconds: 39);
   bool _canCollect = false;
@@ -26,6 +24,7 @@ class DashboardState extends ChangeNotifier {
   double _userCpPoints = 95240.0;
   int _stepCount = 8412;
   double _totalPlatformProfitUsd = 0.0; 
+  String _buildStatusMessage = "System Idle";
 
   String get formattedTime {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
@@ -39,6 +38,7 @@ class DashboardState extends ChangeNotifier {
   double get userCpPoints => _userCpPoints;
   int get stepCount => _stepCount;
   double get totalPlatformProfitUsd => _totalPlatformProfitUsd;
+  String get buildStatusMessage => _buildStatusMessage;
 
   void startMiningTimer() {
     _miningTimer?.cancel();
@@ -51,6 +51,17 @@ class DashboardState extends ChangeNotifier {
         _miningTimer?.cancel();
         notifyListeners();
       }
+    });
+  }
+
+  // Triggers mock build diagnostics log on screen
+  void triggerAndroidApkBuildSimulation() {
+    _buildStatusMessage = "🚀 Running 'flutter build apk --release'...";
+    notifyListeners();
+
+    Timer(const Duration(seconds: 3), () {
+      _buildStatusMessage = "✔️ APK compiled: build/app/outputs/flutter-apk/app-release.apk";
+      notifyListeners();
     });
   }
 
@@ -67,13 +78,8 @@ class DashboardState extends ChangeNotifier {
   void watchAdAndEarn() {
     double sampleAdRevenueUsd = 0.05; 
     final distribution = RevenueController.calculateSplit(sampleAdRevenueUsd);
-
     _totalPlatformProfitUsd += distribution['platformProfitUsd']!;
-    
-    double userCashShare = distribution['userPayoutUsd']!;
-    double conversionRateToCp = 100000; 
-    _userCpPoints += (userCashShare * conversionRateToCp);
-
+    _userCpPoints += (distribution['userPayoutUsd']! * 100000);
     notifyListeners();
   }
 
@@ -150,6 +156,17 @@ class _DashboardShellState extends State<DashboardShell> {
                     const SizedBox(height: 20),
                     _buildLoginWidget(),
                     const Spacer(),
+                    // Live Local Terminal Console View
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(6)),
+                      child: Text(
+                        _stateController.buildStatusMessage,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.greenAccent, fontSize: 10, fontFamily: 'monospace'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       "Platform Safe Profit (90% Cut): \$${_stateController.totalPlatformProfitUsd.toStringAsFixed(4)}",
                       style: const TextStyle(color: Colors.white30, fontSize: 11, fontFamily: 'monospace'),
@@ -227,6 +244,7 @@ class _DashboardShellState extends State<DashboardShell> {
           const Text("Daily Login Streak", style: TextStyle(color: Colors.grey, fontSize: 11)),
           const SizedBox(height: 6),
           Row(
+            mainAxisAlignment: Main合并Center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(4, (index) => const Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.0),
@@ -245,7 +263,10 @@ class _DashboardShellState extends State<DashboardShell> {
           Expanded(
             child: Column(
               children: [
-                _buildMenuTile("Spin The Wheel", "TRY YOUR LUCK!", const Color(0xFFE99E3A), Icons.casino, () {}),
+                // Hooked left panel card to trigger build outputs tracking logs
+                _buildMenuTile("Spin The Wheel", "BUILD APK FILE", const Color(0xFFE99E3A), Icons.build_circle, () {
+                  _stateController.triggerAndroidApkBuildSimulation();
+                }),
                 const SizedBox(height: 12),
                 _buildMenuTile("Tap Coins!", "TAP TO EARN!", const Color(0xFFFFD700), Icons.touch_app, () {}),
               ],
