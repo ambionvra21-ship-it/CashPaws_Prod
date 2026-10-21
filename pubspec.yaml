@@ -1,22 +1,66 @@
-name: cash_paws_prod
-description: "A production ready Flutter build."
-publish_to: 'none'
-version: 1.0.0+1
+name: Build APK
 
-environment:
-  sdk: '^3.6.0'
+on:
+  repository_dispatch:
+    types: [build-apk]
+  workflow_dispatch:
+  push:
+    branches: [main]
 
-dependencies:
-  flutter:
-    sdk: flutter
-  cupertino_icons: ^1.0.6
-  http: ^1.2.0
-  google_mobile_ads: ^5.1.0
-  supabase_flutter: ^2.6.0
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
 
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
+      - name: Set up Java Environment
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-flutter:
-  uses-material-design: true
+      - name: Set up Flutter Environment
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.4'
+          channel: 'stable'
+          cache: false # Wipes stale action caches permanently
+
+      - name: Purge Obsolete Multi-File Workspace Cross-Links
+        run: |
+          rm -f lib/admob_service.dart
+          rm -f lib/supabase_service.dart
+          flutter clean
+
+      - name: Create project workspace files
+        run: |
+          flutter create --org com.cashpaws --project-name cashpaws --platforms=android .
+          rm -rf test
+
+      - name: Force Gradle and AGP Version Upgrades
+        run: |
+          if [ -f android/settings.gradle ]; then
+            sed -i 's/"com.android.application" version "[^"]*"/"com.android.application" version "8.1.4"/g' android/settings.gradle
+          fi
+          if [ -f android/build.gradle ]; then
+            sed -i 's/gradle:[0-9.]*/gradle:8.1.4/g' android/build.gradle
+          fi
+
+      - name: Apply CashPaws customization scripts
+        run: |
+          if [ -f tools/configure_android.py ]; then
+            python3 tools/configure_android.py
+          fi
+
+      - name: Resolve project dependencies cleanly
+        run: flutter pub get
+
+      - name: Compile Release Android Package (APK)
+        run: flutter build apk --release
+        
+      - name: Upload compiled APK Artifact to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: cashpaws-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
