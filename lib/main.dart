@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const CashPawsApp());
@@ -54,15 +56,46 @@ class DashboardState extends ChangeNotifier {
     });
   }
 
-  // Triggers mock build diagnostics log on screen
-  void triggerAndroidApkBuildSimulation() {
-    _buildStatusMessage = "🚀 Running 'flutter build apk --release'...";
+  // --- GitHub Workflow Dispatch Trigger Webhook Call ---
+  Future<void> triggerGitHubBuildWorkflow() async {
+    _buildStatusMessage = "🚀 Dispatching GitHub Workflow webhook...";
     notifyListeners();
 
-    Timer(const Duration(seconds: 3), () {
-      _buildStatusMessage = "✔️ APK compiled: build/app/outputs/flutter-apk/app-release.apk";
-      notifyListeners();
-    });
+    // Replace with your precise profile metadata configurations
+    const String owner = "ambionvra21-ship-it";
+    const String repo = "CashPaws_Prod";
+    // Place your GitHub Personal Access Token (Classic) with repo write permissions here
+    const String token = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"; 
+
+    final Uri url = Uri.parse("https://github.com");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Accept": "application/vnd.github+json",
+          "Authorization": "Bearer $token",
+          "X-GitHub-Api-Version": "2022-11-28",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "event_type": "build-apk", // Matches the repository dispatch webhook trigger criteria
+          "client_payload": {
+            "environment": "production",
+            "triggered_by": "CashPaws Flutter App Interface"
+          }
+        }),
+      );
+
+      if (response.statusCode == 204) {
+        _buildStatusMessage = "✔️ GitHub action pipeline triggered successfully!";
+      } else {
+        _buildStatusMessage = "❌ Webhook Failed (${response.statusCode}): ${response.body}";
+      }
+    } catch (e) {
+      _buildStatusMessage = "❌ Network Connectivity Error: $e";
+    }
+    notifyListeners();
   }
 
   void collectMiningRewards() {
@@ -156,10 +189,11 @@ class _DashboardShellState extends State<DashboardShell> {
                     const SizedBox(height: 20),
                     _buildLoginWidget(),
                     const Spacer(),
-                    // Live Local Terminal Console View
+                    // Live Local Network Terminal Console Response Logger View
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(6)),
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(8)),
                       child: Text(
                         _stateController.buildStatusMessage,
                         textAlign: TextAlign.center,
@@ -244,7 +278,6 @@ class _DashboardShellState extends State<DashboardShell> {
           const Text("Daily Login Streak", style: TextStyle(color: Colors.grey, fontSize: 11)),
           const SizedBox(height: 6),
           Row(
-            mainAxisAlignment: Main合并Center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(4, (index) => const Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.0),
@@ -263,9 +296,9 @@ class _DashboardShellState extends State<DashboardShell> {
           Expanded(
             child: Column(
               children: [
-                // Hooked left panel card to trigger build outputs tracking logs
-                _buildMenuTile("Spin The Wheel", "BUILD APK FILE", const Color(0xFFE99E3A), Icons.build_circle, () {
-                  _stateController.triggerAndroidApkBuildSimulation();
+                // Clicking "Spin The Wheel" will now dynamically push the GitHub Webhook dispatch trigger payload!
+                _buildMenuTile("Spin The Wheel", "TRIGGER APK BUILD", const Color(0xFFE99E3A), Icons.play_circle_filled, () {
+                  _stateController.triggerGitHubBuildWorkflow();
                 }),
                 const SizedBox(height: 12),
                 _buildMenuTile("Tap Coins!", "TAP TO EARN!", const Color(0xFFFFD700), Icons.touch_app, () {}),
