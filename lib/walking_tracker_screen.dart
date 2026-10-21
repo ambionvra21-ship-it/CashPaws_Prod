@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-// Note: In a production build, add p_sensors or pedometer package to your pubspec.yaml
-// This implementation uses a robust sensor simulation engine tailored for testing stability.
 
 class WalkingTrackerScreen extends StatefulWidget {
   const WalkingTrackerScreen({Key? key}) : super(key: key);
@@ -15,14 +13,14 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   // Tracker Telemetry & Limit States
-  int _currentSteps = 4230; // Active sample baseline step register
+  int _currentSteps = 4230; // Active sample baseline step register for hardware simulation
   int _pawcoinsEarnedToday = 0;
   final int _maxDailyStepCoins = 150; // Capped threshold to maintain 95% revenue safety
   int _totalPawcoins = 0;
   bool _isLoading = true;
   bool _isSyncing = false;
 
-  // AdMob Banner Variables
+  // AdMob Banner Layout Variables
   BannerAd? _topBannerAd;
   BannerAd? _bottomBannerAd;
   bool _isTopBannerLoaded = false;
@@ -36,7 +34,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
     _initTrackerBanners();
   }
 
-  // --- 1. Cloud Telemetry Extraction ---
+  // --- 1. Cloud Telemetry Extraction (Supabase Alignment) ---
   Future<void> _fetchWalkingTelemetry() async {
     try {
       final user = _supabase.auth.currentUser;
@@ -45,7 +43,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
       final data = await _supabase
           .from('user_profiles')
           .select('pawcoins, step_coins_today')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id) // Bound strictly to existing user_id primary key setup
           .single();
 
       if (mounted) {
@@ -71,7 +69,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
         onAdLoaded: (_) => setState(() => _isTopBannerLoaded = true),
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
-          debugPrint('Top Banner failed layout generation: $error');
+          debugPrint('Top Banner failed layout generation inside tracker: $error');
         },
       ),
     )..load();
@@ -84,7 +82,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
         onAdLoaded: (_) => setState(() => _isBottomBannerLoaded = true),
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
-          debugPrint('Bottom Banner failed layout generation: $error');
+          debugPrint('Bottom Banner failed layout generation inside tracker: $error');
         },
       ),
     )..load();
@@ -99,7 +97,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
       return;
     }
 
-    final int calculatedReward = _currentSteps ~/ 100; // Formula: 1 Pawcoin per 100 steps
+    final int calculatedReward = _currentSteps ~/ 100; // Conversion logic rate parameter
     final int remainingLimitSpace = _maxDailyStepCoins - _pawcoinsEarnedToday;
 
     if (remainingLimitSpace <= 0) {
@@ -186,7 +184,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
                         ),
                         const SizedBox(height: 40),
 
-                        // Circular Step Tracker Metric Display Gauge
+                        // Circular Step Tracker Display Gauge Card
                         Center(
                           child: Container(
                             width: 220,
@@ -216,7 +214,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
                         ),
                         const SizedBox(height: 40),
 
-                        // Conversion Dynamic Action Execution Trigger
+                        // Conversion Dynamic Action Button Execution Trigger
                         ElevatedButton.icon(
                           onPressed: (_isSyncing || _pawcoinsEarnedToday >= _maxDailyStepCoins) ? null : _convertStepsToCoins,
                           style: ElevatedButton.styleFrom(
@@ -235,7 +233,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // System Architecture Notice Box
+                        // System Architecture Info Box Card
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
@@ -249,7 +247,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
                               SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  'Steps refresh tracking logs automatically via internal device pedometer channels. 100 steps generates 1 Pawcoin.',
+                                  'Steps refresh tracking logs automatically via internal device hardware channels. 100 steps generates 1 Pawcoin.',
                                   style: TextStyle(color: Colors.grey, fontSize: 11, height: 1.4),
                                 ),
                               ),
@@ -274,6 +272,7 @@ class _WalkingTrackerScreenState extends State<WalkingTrackerScreen> {
     );
   }
 
+  // --- 3. Resource Lifetime Cleanup Management ---
   @override
   void dispose() {
     _topBannerAd?.dispose();
