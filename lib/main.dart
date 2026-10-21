@@ -173,7 +173,7 @@ class PlaceholderView extends StatelessWidget {
 }
 
 // ==========================================
-// BATCH 2: HOME DASHBOARD PRESENTATION LAYER
+// BATCH 2 - PART A: DASHBOARD VIEW CORE
 // ==========================================
 
 class HomeDashboardView extends StatelessWidget {
@@ -271,8 +271,8 @@ class HomeDashboardView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
-            // Chest Mining Interactive Card
+
+                        // Chest Mining Interactive Card
             Card(
               elevation: 0,
               color: const Color(0xFFDBEAFE),
@@ -419,11 +419,7 @@ class HomeDashboardView extends StatelessWidget {
     );
   }
 
-    // ==========================================
-  // BATCH 3: WITHDRAWAL GATEWAYS & MONETIZATION
-  // ==========================================
-
-  Widget _buildWithdrawalCardSection() {
+    Widget _buildWithdrawalCardSection() {
     return Card(
       elevation: 0,
       color: Colors.white,
@@ -509,10 +505,10 @@ class HomeDashboardView extends StatelessWidget {
               crossAxisSpacing: 8,
               childAspectRatio: 2.2,
               children: [
-                _buildAdGridButton('Premium Video', 'Earn 10 Coins', onOnTap: onAdWatched),
-                _buildAdGridButton('Sponsor Video', 'Earn 10 Coins', onOnTap: onAdWatched),
-                _buildAdGridButton('Promo Video', 'Earn 10 Coins', onOnTap: onAdWatched),
-                _buildAdGridButton('Bonus Stream', 'Earn 10 Coins', onOnTap: onAdWatched),
+                _buildAdGridButton('Premium Video', 'Earn 10 Coins', onAdWatched),
+                _buildAdGridButton('Sponsor Video', 'Earn 10 Coins', onAdWatched),
+                _buildAdGridButton('Promo Video', 'Earn 10 Coins', onAdWatched),
+                _buildAdGridButton('Bonus Stream', 'Earn 10 Coins', onAdWatched),
               ],
             )
           ],
@@ -521,7 +517,7 @@ class HomeDashboardView extends StatelessWidget {
     );
   }
 
-  Widget _buildAdGridButton(String title, String reward, {required VoidCallback onOnTap}) {
+  Widget _buildAdGridButton(String title, String reward, VoidCallback onOnTap) {
     return InkWell(
       onTap: onOnTap,
       borderRadius: BorderRadius.circular(8),
@@ -553,10 +549,10 @@ class HomeDashboardView extends StatelessWidget {
                   ),
                 ],
               ),
-                ),
-              ],
             ),
-          ),
+          ],
+        ),
+      ),
     );
   }
-
+}
