@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'google_mobile_ads/google_mobile_ads.dart';
+// Fixed: Swapped to valid package path mapping scheme
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdMobService {
   RewardedAd? _rewardedAd;
   bool isAdLoading = false;
 
-  // AdMob Test Unit ID for Rewarded Video Ads
   final String rewardedUnitId = "ca-app-pub-3940256099942544/5224354917";
 
   Future<void> initializeAdMob() async {
@@ -47,7 +47,7 @@ class AdMobService {
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         onAdClosed();
-        loadRewardedAd(onAdLoaded: () {}); // Pre-load next ad
+        loadRewardedAd(onAdLoaded: () {});
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         ad.dispose();
@@ -57,12 +57,9 @@ class AdMobService {
 
     _rewardedAd!.show(
       onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        // Enforce strict 90% profit vs 10% user payout conversion rule base on ad revenue metrics
-        double simulatedGrossAdRevenueUsd = 0.05; // Base yield generated per watch event
+        double simulatedGrossAdRevenueUsd = 0.05; 
         double platformProfitCut = simulatedGrossAdRevenueUsd * 0.90;
         double userPayoutCutUsd = simulatedGrossAdRevenueUsd * 0.10;
-        
-        // Convert the 10% user cash allocation cut into active CP Game Tokens
         double userPointsEarned = userPayoutCutUsd * 100000; 
 
         onRewardEarned(platformProfitCut, userPointsEarned);
